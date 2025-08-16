@@ -127,16 +127,6 @@ export default function Stats() {
                     Edit
                   </button>
                   <button
-                    onClick={async (e) => {
-                      e.preventDefault()
-                      await supabase.from('stats').update({ pinned: !s.pinned }).eq('id', s.id)
-                      await refetch()
-                    }}
-                    className="btn-secondary text-sm"
-                  >
-                    {s.pinned ? 'Unpin' : 'Pin'}
-                  </button>
-                  <button
                     onClick={() => handleDeleteClick(s)}
                     className="btn-secondary text-sm text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
