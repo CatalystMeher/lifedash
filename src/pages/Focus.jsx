@@ -9,6 +9,35 @@ function fetchDurationStats() {
   return supabase.from('stats').select('*').eq('type','duration').order('inserted_at',{ascending:false})
 }
 
+// Timer persistence helpers
+const TIMER_STORAGE_KEY = 'focus-timer-state'
+
+function saveTimerState(state) {
+  try {
+    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(state))
+  } catch (e) {
+    console.warn('Failed to save timer state:', e)
+  }
+}
+
+function loadTimerState() {
+  try {
+    const saved = localStorage.getItem(TIMER_STORAGE_KEY)
+    return saved ? JSON.parse(saved) : null
+  } catch (e) {
+    console.warn('Failed to load timer state:', e)
+    return null
+  }
+}
+
+function clearTimerState() {
+  try {
+    localStorage.removeItem(TIMER_STORAGE_KEY)
+  } catch (e) {
+    console.warn('Failed to clear timer state:', e)
+  }
+}
+
 export default function Focus() {
   const { user, loading } = useUser()
   const { data, isLoading } = useQuery({
@@ -31,6 +60,54 @@ export default function Focus() {
   useEffect(()=>{
     if (!statId && list.length) setStatId(list[0].id)
   }, [list, statId])
+
+  // Load persistent timer state on mount
+  useEffect(() => {
+    const savedState = loadTimerState()
+    if (savedState && savedState.userId === user?.id) {
+      const now = Date.now()
+      const timeSinceStart = Math.floor((now - savedState.startTime) / 1000)
+      const totalPaused = savedState.pausedSeconds || 0
+      
+      if (savedState.running) {
+        // Timer was running, calculate current elapsed time
+        const currentElapsed = Math.max(0, timeSinceStart - totalPaused)
+        setElapsedSec(currentElapsed)
+        setRunning(true)
+        startRef.current = new Date(savedState.startTime)
+        pausedRef.current = totalPaused
+        lastPauseStart.current = null
+        
+        // Restart the timer
+        tickRef.current = setInterval(() => {
+          setElapsedSec(Math.floor((Date.now() - startRef.current.getTime() - pausedRef.current * 1000) / 1000))
+        }, 1000)
+      } else if (savedState.elapsedSeconds > 0) {
+        // Timer was paused, restore the state
+        setElapsedSec(savedState.elapsedSeconds)
+        setRunning(false)
+        startRef.current = new Date(savedState.startTime)
+        pausedRef.current = totalPaused
+        lastPauseStart.current = null
+      }
+    }
+  }, [user?.id])
+
+  // Save timer state when it changes
+  useEffect(() => {
+    if (startRef.current) {
+      const state = {
+        userId: user?.id,
+        startTime: startRef.current.getTime(),
+        running,
+        elapsedSeconds: elapsedSec,
+        pausedSeconds: pausedRef.current,
+        statId,
+        modeMin
+      }
+      saveTimerState(state)
+    }
+  }, [running, elapsedSec, user?.id, statId, modeMin])
 
   function startTimer(min=null) {
     if (!statId) return toast.error('Pick a duration stat')
@@ -69,6 +146,7 @@ export default function Focus() {
     clearInterval(tickRef.current)
     setRunning(false)
     setElapsedSec(0)
+    clearTimerState()
   }
 
   async function finish() {
@@ -92,6 +170,7 @@ export default function Focus() {
     }
     setRunning(false)
     setElapsedSec(0)
+    clearTimerState()
   }
 
   const mm = String(Math.floor(elapsedSec/60)).padStart(2,'0')
@@ -110,10 +189,10 @@ export default function Focus() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Focus</h2>
+      <h2 className="text-2xl font-bold theme-text-2xl">Focus</h2>
 
       <div className="p-6 card">
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <div>
             <label className="text-sm text-muted mb-2 block">Log to stat</label>
             <select 
@@ -127,14 +206,14 @@ export default function Focus() {
           </div>
           <div>
             <label className="text-sm text-muted mb-2 block">Preset (minutes)</label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {[25,50,90].map(m=>(
                 <button key={m}
                   onClick={()=>setModeMin(m)}
                   className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all duration-200 ${
                                        modeMin===m 
                      ? 'bg-green-500 text-white border-green-500' 
-                     : 'btn-secondary'
+                     : 'theme-button-secondary'
                   }`}>
                   {m}
                 </button>
@@ -152,8 +231,8 @@ export default function Focus() {
 
         {/* Timer */}
         <div className="flex flex-col items-center">
-          <div className="text-6xl font-bold tabular-nums text-gray-900 dark:text-gray-100 mb-6">{mm}:{ss}</div>
-          <div className="flex gap-3">
+          <div className="text-6xl font-bold tabular-nums theme-text-4xl mb-6">{mm}:{ss}</div>
+          <div className="flex gap-3 flex-wrap justify-center">
             {!running && elapsedSec===0 && (
               <button onClick={()=>startTimer()} className="btn-primary px-8 py-3 text-lg">Start</button>
             )}
@@ -181,7 +260,7 @@ export default function Focus() {
       {!isLoading && !list.length && (
         <div className="text-center p-12 card">
           <div className="text-4xl mb-4">⏱️</div>
-          <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No duration stats</div>
+          <div className="text-lg font-semibold theme-text-lg mb-2">No duration stats</div>
           <div className="text-muted">Create a stat of type <span className="font-semibold">duration</span> first.</div>
         </div>
       )}

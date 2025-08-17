@@ -104,7 +104,7 @@ export default function Habits() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Habits</h2>
+        <h2 className="text-2xl font-bold theme-text-2xl">Habits</h2>
         <button onClick={() => setOpen(true)} className="btn-primary">New</button>
       </div>
 
@@ -140,7 +140,16 @@ export default function Habits() {
                     )}
                   </button>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-gray-100">{h.name}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="font-semibold theme-text">{h.name}</div>
+                      {h.color && (
+                        <div 
+                          className="w-3 h-3 rounded-sm flex-shrink-0"
+                          style={{ backgroundColor: h.color }}
+                          title={`Color: ${h.color}`}
+                        />
+                      )}
+                    </div>
                     <div className="text-sm text-muted">
                       Today: {done ? 'Done' : 'Not yet'}
                       {!isScheduledToday && ' • Not scheduled today'}

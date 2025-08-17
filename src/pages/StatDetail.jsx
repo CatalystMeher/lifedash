@@ -124,6 +124,17 @@ export default function StatDetail() {
     }
   }
 
+  async function deleteEntry(entryId) {
+    try {
+      const { error } = await supabase.from('entries').delete().eq('id', entryId)
+      if (error) throw error
+      toast.success('Entry deleted')
+      refetch()
+    } catch (e) {
+      toast.error(e.message || 'Failed to delete entry')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -137,7 +148,7 @@ export default function StatDetail() {
           <p className="text-sm text-muted">
             {lifetimePeriod === 'lifetime' ? 'Lifetime' : lifetimePeriod === '7d' ? 'Last 7 Days' : 'Last 30 Days'} Total
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {[
               { key: '7d', label: '7d' },
               { key: '30d', label: '30d' },
@@ -168,24 +179,26 @@ export default function StatDetail() {
       {stat?.type === 'number' && (
         <div className="p-6 card">
           <label className="text-sm text-muted mb-3 block">Add value ({unit || 'value'})</label>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-col sm:flex-row">
             <input 
               type="number" 
               inputMode="decimal" 
-              className="flex-1 input" 
+              className="flex-1 input w-full" 
               placeholder={`Enter ${unit || 'value'}`}
               value={numValue}
               onChange={(e) => setNumValue(e.target.value)}
             />
-            {[1,5,10,25].map(n=>(
-              <button 
-                key={n} 
-                onClick={()=>setNumValue(String((Number(numValue||0))+n))} 
-                className="px-3 py-2 text-sm rounded-lg border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >
-                +{n}
-              </button>
-            ))}
+            <div className="flex gap-2 flex-wrap">
+              {[1,5,10,25].map(n=>(
+                <button 
+                  key={n} 
+                  onClick={()=>setNumValue(String((Number(numValue||0))+n))} 
+                  className="px-3 py-2 text-sm rounded-lg border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  +{n}
+                </button>
+              ))}
+            </div>
             <button 
               onClick={()=>{
                 const v = Number(numValue||0)
@@ -193,7 +206,7 @@ export default function StatDetail() {
                 logToday({ value: v })
                 setNumValue('')
               }} 
-              className="btn-primary"
+              className="btn-primary w-full sm:w-auto"
             >
               Save
             </button>
@@ -204,23 +217,25 @@ export default function StatDetail() {
       {stat?.type === 'duration' && (
         <div className="p-6 card">
           <label className="text-sm text-muted mb-3 block">Add minutes</label>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-col sm:flex-row">
             <input 
               type="number" 
-              className="flex-1 input" 
+              className="flex-1 input w-full" 
               placeholder="Minutes"
               value={durValue}
               onChange={(e) => setDurValue(e.target.value)}
             />
-            {[5,15,25].map(n=>(
-              <button 
-                key={n} 
-                onClick={()=>setDurValue(String((Number(durValue||0))+n))} 
-                className="px-3 py-2 text-sm rounded-lg border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >
-                +{n}m
-              </button>
-            ))}
+            <div className="flex gap-2 flex-wrap">
+              {[5,15,25].map(n=>(
+                <button 
+                  key={n} 
+                  onClick={()=>setDurValue(String((Number(durValue||0))+n))} 
+                  className="px-3 py-2 text-sm rounded-lg border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  +{n}m
+                </button>
+              ))}
+            </div>
             <button 
               onClick={()=>{
                 const v = Number(durValue||0)
@@ -228,7 +243,7 @@ export default function StatDetail() {
                 logToday({ value: v, source: 'manual' })
                 setDurValue('')
               }} 
-              className="btn-primary"
+              className="btn-primary w-full sm:w-auto"
             >
               Save
             </button>
@@ -241,10 +256,10 @@ export default function StatDetail() {
       {stat?.type === 'text' && (
         <div className="p-6 card">
           <label className="text-sm text-muted mb-3 block">Note for today</label>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-col sm:flex-row">
             <textarea 
               rows={3} 
-              className="flex-1 input resize-none" 
+              className="flex-1 input resize-none w-full" 
               placeholder="Write a short note…"
               value={noteValue}
               onChange={(e) => setNoteValue(e.target.value)}
@@ -256,7 +271,7 @@ export default function StatDetail() {
                 logToday({ note: v })
                 setNoteValue('')
               }} 
-              className="btn-primary"
+              className="btn-primary w-full sm:w-auto"
             >
               Save
             </button>
@@ -268,7 +283,7 @@ export default function StatDetail() {
       <div className="p-6 card">
         <div className="flex items-center justify-between mb-6">
                      <div className="text-base font-semibold text-gray-900 dark:text-gray-100">Last {range} days</div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {[7,30,90].map(n=>(
               <button 
                 key={n} 
@@ -318,10 +333,26 @@ export default function StatDetail() {
         <ul className="space-y-3">
           {[...entries].slice(-10).reverse().map(e => (
             <li key={e.id} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-              <span className="text-sm text-muted">{dayjs(e.day).format('DD MMM')}</span>
-              <span className="font-medium text-gray-900 dark:text-gray-100">
-                {typeof e.value === 'number' && !isNaN(e.value) ? e.value : (e.note ? 'note' : '—')}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted">{dayjs(e.day).format('DD MMM')}</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100">
+                  {typeof e.value === 'number' && !isNaN(e.value) ? e.value : (e.note ? 'note' : '—')}
+                </span>
+                {e.note && (
+                  <span className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-32">
+                    {e.note}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => deleteEntry(e.id)}
+                className="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1 rounded transition-colors"
+                title="Delete entry"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
             </li>
           ))}
           {!entries.length && (

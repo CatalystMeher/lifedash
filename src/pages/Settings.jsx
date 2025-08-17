@@ -2,12 +2,23 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import useUser from '../hooks/useUser'
 import toast from 'react-hot-toast'
+import { useTheme } from '../contexts/ThemeContext'
+import { Palette, Sun, Moon, Droplets, Crown, Sunset } from 'lucide-react'
 
 export default function Settings() {
   const { user } = useUser()
+  const { currentTheme, changeTheme, themes } = useTheme()
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [resetText, setResetText] = useState('')
   const [isResetting, setIsResetting] = useState(false)
+
+  const themeOptions = [
+    { key: 'light', icon: Sun, color: 'bg-yellow-500' },
+    { key: 'dark', icon: Moon, color: 'bg-gray-800' },
+    { key: 'blue', icon: Droplets, color: 'bg-blue-600' },
+    { key: 'purple', icon: Crown, color: 'bg-purple-600' },
+    { key: 'warm', icon: Sunset, color: 'bg-orange-500' }
+  ]
 
   const handleResetData = async () => {
     if (resetText !== 'DELETE ALL DATA') {
@@ -71,24 +82,50 @@ export default function Settings() {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h2>
       
+      {/* Theme Selection */}
       <div className="p-6 card">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Preferences</h3>
-        <ul className="space-y-3 text-sm text-muted">
-          <li className="flex items-center gap-3">
-            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-            Theme (auto/dark)
-          </li>
-          <li className="flex items-center gap-3">
-            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-            Manage pinned stats
-          </li>
-          <li className="flex items-center gap-3">
-            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-            About & privacy
-          </li>
-        </ul>
+        <div className="flex items-center gap-2 mb-4">
+          <Palette className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Theme</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {themeOptions.map(({ key, icon: Icon, color }) => {
+            const theme = themes[key]
+            const isActive = currentTheme === key
+            return (
+              <button
+                key={key}
+                onClick={() => changeTheme(key)}
+                className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                  isActive
+                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>
+                    <Icon className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                      {theme.name}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {theme.description}
+                    </div>
+                  </div>
+                  {isActive && (
+                    <div className="ml-auto">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    </div>
+                  )}
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
-
+      
       <div className="p-6 card">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Account</h3>
         <div className="space-y-3">

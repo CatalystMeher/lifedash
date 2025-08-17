@@ -10,25 +10,28 @@ import Settings from './pages/Settings'
 import Auth from './pages/Auth'
 import StatDetail from './pages/StatDetail'
 import ErrorBoundary from './components/ErrorBoundary'
+import { ThemeProvider } from './contexts/ThemeContext'
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route element={<RequireAuth />}>
-          <Route element={<MainLayout />}>
-            <Route index element={<Navigate to="/home" replace />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/stats" element={<Stats />} />
-            <Route path="/habits" element={<Habits />} />
-            <Route path="/focus" element={<Focus />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/stats/:id" element={<StatDetail />} />
+    <ThemeProvider>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route element={<RequireAuth />}>
+            <Route element={<MainLayout />}>
+              <Route index element={<Navigate to="/home" replace />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/stats" element={<Stats />} />
+              <Route path="/habits" element={<Habits />} />
+              <Route path="/focus" element={<Focus />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/stats/:id" element={<StatDetail />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
-    </ErrorBoundary>
+        </Routes>
+      </ErrorBoundary>
+    </ThemeProvider>
   )
 }

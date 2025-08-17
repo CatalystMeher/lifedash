@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import dayjs from 'dayjs'
 
-export default function QuickLogModal({ open, onClose, user }) {
+export default function QuickLogModal({ open, onClose, user, onSave }) {
   const [stats, setStats] = useState([])
   const [saving, setSaving] = useState(false)
   const [vals, setVals] = useState({}) // { [statId]: any }
@@ -46,6 +46,8 @@ export default function QuickLogModal({ open, onClose, user }) {
     if (error) return toast.error(error.message)
     toast.success('Logged!')
     onClose()
+    // Call onSave callback to refresh parent data
+    if (onSave) onSave()
   }
 
   return (
@@ -71,16 +73,16 @@ export default function QuickLogModal({ open, onClose, user }) {
             </div>
 
             {s.type === 'number' && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-col sm:flex-row">
                 <input 
                   type="number" 
                   inputMode="decimal"
-                  className="flex-1 input"
+                  className="flex-1 input w-full"
                   placeholder={`Enter ${s.unit || 'value'}`}
                   value={vals[s.id] ?? ''}
                   onChange={e => setValue(s.id, e.target.value)}
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {[+1, +5, +10, +25].map(n => (
                                          <button 
                        key={n} 
@@ -95,15 +97,15 @@ export default function QuickLogModal({ open, onClose, user }) {
             )}
 
             {s.type === 'duration' && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-col sm:flex-row">
                 <input 
                   type="number" 
-                  className="flex-1 input"
+                  className="flex-1 input w-full"
                   placeholder="Minutes"
                   value={vals[s.id] ?? ''}
                   onChange={e => setValue(s.id, e.target.value)}
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {[5, 15, 25].map(n => (
                                          <button 
                        key={n} 

@@ -80,7 +80,7 @@ export default function Stats() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Stats</h2>
+        <h2 className="text-2xl font-bold theme-text-2xl">Stats</h2>
         <button
           onClick={() => setOpen(true)}
           className="btn-primary"
@@ -103,17 +103,17 @@ export default function Stats() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div 
-                    className="w-12 h-12 rounded-xl flex items-center justify-center"
+                    className="w-12 h-12 rounded-xl flex flex-shrink-0 items-center justify-center"
                     style={{ background: s.color || '#e5e5e5' }}
                   >
-                    <IconComponent className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                    <IconComponent className="w-6 h-6 text-white theme-icon" />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-gray-100">{s.name}</div>
+                    <div className="font-semibold theme-text">{s.name}</div>
                     <div className="text-sm text-muted">{s.type}{s.unit ? ` • ${s.unit}` : ''}</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Link
                     to={`/stats/${s.id}`}
                     className="btn-secondary text-sm"
@@ -140,7 +140,7 @@ export default function Stats() {
         {!isLoading && !data?.data?.length && (
           <div className="text-center p-12 card">
             <div className="text-4xl mb-4">📊</div>
-            <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No stats yet</div>
+            <div className="text-lg font-semibold theme-text-lg mb-2">No stats yet</div>
             <div className="text-muted">Create your first stat to start tracking!</div>
           </div>
         )}

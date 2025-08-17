@@ -3,7 +3,7 @@
 
 @layer base {
   * {
-    @apply border-gray-200 dark:border-gray-700;
+    border-color: var(--border-color);
   }
   
   html {
@@ -12,8 +12,161 @@
   }
   
   body {
-    @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 font-sans;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Theme CSS Custom Properties */
+  :root {
+    /* Light theme (default) */
+    --primary-color: #22c55e;
+    --primary-hover: #16a34a;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --border-color: #e5e7eb;
+    --nav-bg: rgba(255, 255, 255, 0.95);
+    --sidebar-bg: #ffffff;
+  }
+
+  /* Dark theme */
+  .theme-dark {
+    --primary-color: #22c55e;
+    --primary-hover: #16a34a;
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --nav-bg: rgba(15, 23, 42, 0.95);
+    --sidebar-bg: #0f172a;
+  }
+
+  /* Ocean Blue theme - Dark */
+  .theme-blue {
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --bg-primary: #0c1426;
+    --bg-secondary: #1e293b;
+    --text-primary: #e2e8f0;
+    --text-secondary: #64748b;
+    --border-color: #334155;
+    --nav-bg: rgba(12, 20, 38, 0.95);
+    --sidebar-bg: #0c1426;
+  }
+
+  /* Royal Purple theme - Dark */
+  .theme-purple {
+    --primary-color: #8b5cf6;
+    --primary-hover: #7c3aed;
+    --bg-primary: #1a1625;
+    --bg-secondary: #2d1b69;
+    --text-primary: #f3e8ff;
+    --text-secondary: #a78bfa;
+    --border-color: #4c1d95;
+    --nav-bg: rgba(26, 22, 37, 0.95);
+    --sidebar-bg: #1a1625;
+  }
+
+  /* Warm Sunset theme - Light */
+  .theme-warm {
+    --primary-color: #f97316;
+    --primary-hover: #ea580c;
+    --bg-primary: #fff7ed;
+    --bg-secondary: #fed7aa;
+    --text-primary: #7c2d12;
+    --text-secondary: #ea580c;
+    --border-color: #fed7aa;
+    --nav-bg: rgba(255, 247, 237, 0.95);
+    --sidebar-bg: #fff7ed;
+  }
+
+  /* Theme-aware utility classes */
+  .theme-bg {
+    background-color: var(--bg-primary);
+  }
+
+  .theme-bg-secondary {
+    background-color: var(--bg-secondary);
+  }
+
+  .theme-text {
+    color: var(--text-primary);
+  }
+
+  .theme-text-secondary {
+    color: var(--text-secondary);
+  }
+
+  .theme-border {
+    border-color: var(--border-color);
+  }
+
+  .theme-nav-bg {
+    background-color: var(--nav-bg);
+    backdrop-filter: blur(12px);
+  }
+
+  .theme-sidebar-bg {
+    background-color: var(--sidebar-bg);
+    border-color: var(--border-color);
+  }
+
+  /* Additional theme-aware classes */
+  .theme-text-bold {
+    color: var(--text-primary);
+    font-weight: bold;
+  }
+
+  .theme-text-semibold {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .theme-text-lg {
+    color: var(--text-primary);
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+
+  .theme-text-xl {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  .theme-text-2xl {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  .theme-text-3xl {
+    color: var(--text-primary);
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+
+  .theme-text-4xl {
+    color: var(--text-primary);
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+  }
+
+  .theme-icon {
+    color: var(--text-secondary);
+  }
+
+  .theme-button-secondary {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+  }
+
+  .theme-button-secondary:hover {
+    background-color: var(--bg-primary);
   }
   
   /* Custom scrollbar */
@@ -26,11 +179,12 @@
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+    background-color: var(--text-secondary);
+    border-radius: 9999px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400 dark:bg-gray-500;
+    background-color: var(--text-primary);
   }
 
   /* Animations */
@@ -65,22 +219,69 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-xl transition-all duration-200 active:scale-95 shadow-sm;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--primary-hover);
+  }
+  
+  .btn-primary:active {
+    transform: scale(0.95);
   }
   
   .btn-secondary {
-    @apply bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 font-medium px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-200 active:scale-95 shadow-sm;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+  }
+  
+  .btn-secondary:hover {
+    background-color: var(--bg-secondary);
+  }
+  
+  .btn-secondary:active {
+    transform: scale(0.95);
   }
   
   .card {
-    @apply bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   }
   
   .input {
-    @apply w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all duration-200;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    color: var(--text-primary);
+    transition: all 0.2s;
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgb(34 197 94 / 0.1);
+  }
+  
+  .input::placeholder {
+    color: var(--text-secondary);
   }
   
   .text-muted {
-    @apply text-gray-600 dark:text-gray-400;
+    color: var(--text-secondary);
   }
 }

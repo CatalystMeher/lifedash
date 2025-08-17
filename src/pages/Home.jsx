@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Card from '../components/Card'
 import Sparkline from '../components/Sparkline'
 import FAB from '../components/FAB'
@@ -12,6 +12,16 @@ import * as LucideIcons from 'lucide-react'
 import dayjs from 'dayjs'
 import { Check, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+// Number formatting function
+function formatNumber(num) {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
+  }
+  return num.toString()
+}
 
 async function fetchStats() {
   const { data, error } = await supabase.from('stats').select('*').order('inserted_at', { ascending: false })
@@ -55,6 +65,7 @@ async function fetchTodayCheckins(today, userId) {
 
 export default function Home() {
   const { user, loading } = useUser()
+  const queryClient = useQueryClient()
   const [openQL, setOpenQL] = useState(false)
   const [statsPeriod, setStatsPeriod] = useState('today') // 'today', '7d', '30d', 'lifetime'
 
@@ -161,7 +172,14 @@ export default function Home() {
     if (error) return toast.error(error.message)
     toast.success(done ? 'Marked done' : 'Marked not done')
     // Refetch checkins to update UI
-    window.location.reload()
+    queryClient.invalidateQueries(['habit-checkins-today'])
+  }
+
+  // Refresh function for QuickLogModal
+  const refreshData = () => {
+    queryClient.invalidateQueries(['entries-home'])
+    queryClient.invalidateQueries(['period-entries'])
+    queryClient.invalidateQueries(['lifetime-entries'])
   }
 
   // Debug logging
@@ -236,7 +254,7 @@ export default function Home() {
         <Card className="p-6">
           <p className="text-sm text-muted mb-2">Focus (min)</p>
           <div className="flex items-end justify-between">
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{focusToday}</h3>
+            <h3 className="text-3xl font-bold theme-text-3xl">{formatNumber(focusToday)}</h3>
             <span className="text-xs text-muted">today</span>
           </div>
         </Card>
@@ -244,14 +262,14 @@ export default function Home() {
         <Card className="p-6">
           <p className="text-sm text-muted mb-2">Habits done</p>
           <div className="flex items-end justify-between">
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{habitsDone}/{todaysHabits.length}</h3>
+            <h3 className="text-3xl font-bold theme-text-3xl">{habitsDone}/{todaysHabits.length}</h3>
             <span className="text-xs text-muted">today</span>
           </div>
         </Card>
 
         <Card className="p-6 col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-base font-semibold text-gray-900 dark:text-gray-100">This week (focus)</p>
+            <p className="text-base font-semibold theme-text-lg">This week (focus)</p>
             <span className="text-xs text-muted">last 7 days</span>
           </div>
           <div className="text-green-500">
@@ -264,8 +282,8 @@ export default function Home() {
       {stats.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Stats</h4>
-            <div className="flex gap-2">
+            <h4 className="text-lg font-semibold theme-text-lg">Stats</h4>
+            <div className="flex gap-2 flex-wrap">
               {[
                 { key: 'today', label: 'Today' },
                 { key: '7d', label: '7d' },
@@ -278,7 +296,7 @@ export default function Home() {
                   className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${
                     statsPeriod === period.key
                       ? 'bg-green-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      : 'theme-button-secondary hover:theme-button-secondary'
                   }`}
                 >
                   {period.label}
@@ -296,8 +314,8 @@ export default function Home() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted mb-1">{stat.name}</p>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                        {periodValue}{unit ? ` ${unit}` : ''}
+                      <h3 className="text-xl font-bold theme-text-xl">
+                        {formatNumber(periodValue)}{unit ? ` ${unit}` : ''}
                       </h3>
                       <p className="text-xs text-muted">
                         {getPeriodDescription(statsPeriod)}
@@ -307,7 +325,7 @@ export default function Home() {
                       className="w-8 h-8 rounded-lg flex items-center justify-center"
                       style={{ background: stat.color || '#e5e5e5' }}
                     >
-                      <IconComponent className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                      <IconComponent className="w-4 h-4 text-white theme-icon" />
                     </div>
                   </div>
                 </Card>
@@ -390,7 +408,7 @@ export default function Home() {
       )}
 
       <FAB onClick={() => setOpenQL(true)} />
-      <QuickLogModal open={openQL} onClose={() => setOpenQL(false)} user={user} />
+      <QuickLogModal open={openQL} onClose={() => setOpenQL(false)} user={user} onSave={refreshData} />
       <InstallPrompt />
     </div>
   )
