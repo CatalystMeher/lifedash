@@ -191,10 +191,10 @@ export default function Auth() {
       <div className="w-full max-w-md p-8 card shadow-xl">
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl accent-bg shadow-md flex items-center justify-center mx-auto mb-4">
-            <span className="accent-text font-bold text-2xl">L</span>
+            <img src="/logo.png" alt="LifeDash" className="w-10 h-10" />
           </div>
           <h1 className="text-2xl font-bold theme-text mb-2">Welcome to LifeDash</h1>
-          <p className="text-muted">Sign in to continue to your dashboard</p>
+          <p className="theme-text-secondary">Sign in to continue to your dashboard</p>
         </div>
         
         {/* Auth Mode Toggle */}
@@ -237,16 +237,16 @@ export default function Auth() {
                 <Check className="w-6 h-6 accent-text" />
               </div>
               <h2 className="text-lg font-semibold theme-text mb-2">Set New Password</h2>
-              <p className="text-sm text-muted">
+              <p className="text-sm theme-text-secondary">
                 Enter your new password below
               </p>
             </div>
             
             <form onSubmit={handlePasswordReset} className="space-y-4">
               <div>
-                <label className="text-sm text-muted mb-2 block">New Password</label>
+                <label className="text-sm theme-text-secondary mb-2 block">New Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted w-4 h-4" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 theme-text-secondary w-4 h-4" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
@@ -259,7 +259,7 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:theme-text"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 theme-text-secondary hover:theme-text"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -267,9 +267,9 @@ export default function Auth() {
               </div>
               
               <div>
-                <label className="text-sm text-muted mb-2 block">Confirm Password</label>
+                <label className="text-sm theme-text-secondary mb-2 block">Confirm Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted w-4 h-4" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 theme-text-secondary w-4 h-4" />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     required
@@ -282,7 +282,7 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:theme-text"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 theme-text-secondary hover:theme-text"
                   >
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -307,16 +307,16 @@ export default function Auth() {
                 <Key className="w-6 h-6 accent-text" />
               </div>
               <h2 className="text-lg font-semibold theme-text mb-2">Set Password</h2>
-              <p className="text-sm text-muted">
+              <p className="text-sm theme-text-secondary">
                 Your account was created with magic link. Set a password to use email & password login.
               </p>
             </div>
             
             <form onSubmit={setPasswordForAccount} className="space-y-4">
               <div>
-                <label className="text-sm text-muted mb-2 block">Email address</label>
+                <label className="text-sm theme-text-secondary mb-2 block">Email address</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted w-4 h-4" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 theme-text-secondary w-4 h-4" />
                   <input
                     type="email"
                     required
@@ -342,7 +342,7 @@ export default function Auth() {
                   setAuthMode('magic')
                   setIsSettingPassword(false)
                 }}
-                className="text-sm accent-text hover:underline"
+                className="text-sm theme-text-secondary hover:accent-text transition-colors"
               >
                 Or continue with magic link
               </button>
@@ -354,9 +354,9 @@ export default function Auth() {
         {authMode === 'email' && !resetToken && (
           <form onSubmit={handleEmailAuth} className="space-y-4">
             <div>
-              <label className="text-sm text-muted mb-2 block">Email address</label>
+              <label className="text-sm theme-text-secondary mb-2 block">Email address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted w-4 h-4" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 theme-text-secondary w-4 h-4" />
                 <input
                   type="email"
                   required
@@ -369,9 +369,9 @@ export default function Auth() {
             </div>
             
             <div>
-              <label className="text-sm text-muted mb-2 block">Password</label>
+              <label className="text-sm theme-text-secondary mb-2 block">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted w-4 h-4" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 theme-text-secondary w-4 h-4" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
@@ -383,7 +383,7 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:theme-text"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 theme-text-secondary hover:theme-text"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -403,9 +403,9 @@ export default function Auth() {
         {authMode === 'magic' && !resetToken && (
           <form onSubmit={sendMagicLink} className="space-y-4">
             <div>
-              <label className="text-sm text-muted mb-2 block">Email address</label>
+              <label className="text-sm theme-text-secondary mb-2 block">Email address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted w-4 h-4" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 theme-text-secondary w-4 h-4" />
                 <input
                   type="email"
                   required
@@ -430,7 +430,7 @@ export default function Auth() {
           <div className="text-center mt-4">
             <button
               onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm accent-text hover:underline"
+              className="text-sm theme-text-secondary hover:accent-text transition-colors"
             >
               {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
             </button>
@@ -445,7 +445,7 @@ export default function Auth() {
                 setAuthMode('setPassword')
                 setIsSettingPassword(true)
               }}
-              className="text-sm accent-text hover:underline"
+              className="text-sm theme-text-secondary hover:accent-text transition-colors"
             >
               Want to set a password for faster login?
             </button>
@@ -459,7 +459,7 @@ export default function Auth() {
               <div className="w-full theme-border border-t"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 theme-bg text-muted">Or continue with</span>
+              <span className="px-2 theme-bg theme-text-secondary">Or continue with</span>
             </div>
           </div>
         )}
@@ -478,7 +478,7 @@ export default function Auth() {
 
         {/* Footer */}
         <div className="text-center mt-6">
-          <p className="text-xs text-muted">
+          <p className="text-xs theme-text-secondary">
             By continuing, you agree to our Terms of Service and Privacy Policy
           </p>
         </div>
