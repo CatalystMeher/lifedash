@@ -48,7 +48,7 @@ export default function SideNav({ today }) {
               to={tab.to}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 active
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                  ? 'accent-bg accent-text'
                   : 'theme-text-secondary hover:theme-bg-secondary'
               }`}
             >

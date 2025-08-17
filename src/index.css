@@ -20,8 +20,8 @@
   /* Theme CSS Custom Properties */
   :root {
     /* Light theme (default) */
-    --primary-color: #22c55e;
-    --primary-hover: #16a34a;
+    --primary-color: #000000;
+    --primary-hover: #374151;
     --bg-primary: #ffffff;
     --bg-secondary: #f9fafb;
     --text-primary: #111827;
@@ -29,58 +29,98 @@
     --border-color: #e5e7eb;
     --nav-bg: rgba(255, 255, 255, 0.95);
     --sidebar-bg: #ffffff;
+    --accent-bg: #000000;
+    --accent-text: #ffffff;
   }
 
   /* Dark theme */
   .theme-dark {
-    --primary-color: #22c55e;
-    --primary-hover: #16a34a;
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --border-color: #334155;
-    --nav-bg: rgba(15, 23, 42, 0.95);
-    --sidebar-bg: #0f172a;
+    --primary-color: #ffffff;
+    --primary-hover: #e5e7eb;
+    --bg-primary: #090909;
+    --bg-secondary: #151515;
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --border-color: #424242;
+    --nav-bg: rgba(24, 24, 25, 0.95);
+    --sidebar-bg: #151515;
+    --accent-bg: #ffffff;
+    --accent-text: #000000;
   }
 
   /* Ocean Blue theme - Dark */
   .theme-blue {
     --primary-color: #3b82f6;
     --primary-hover: #2563eb;
-    --bg-primary: #0c1426;
-    --bg-secondary: #1e293b;
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #15151f;
     --text-primary: #e2e8f0;
     --text-secondary: #64748b;
-    --border-color: #334155;
-    --nav-bg: rgba(12, 20, 38, 0.95);
-    --sidebar-bg: #0c1426;
+    --border-color: #2a2a3a;
+    --nav-bg: rgba(10, 10, 15, 0.95);
+    --sidebar-bg: #15151f;
+    --accent-bg: #3b82f6;
+    --accent-text: #ffffff;
   }
 
-  /* Royal Purple theme - Dark */
-  .theme-purple {
-    --primary-color: #8b5cf6;
-    --primary-hover: #7c3aed;
-    --bg-primary: #1a1625;
-    --bg-secondary: #2d1b69;
-    --text-primary: #f3e8ff;
-    --text-secondary: #a78bfa;
-    --border-color: #4c1d95;
-    --nav-bg: rgba(26, 22, 37, 0.95);
-    --sidebar-bg: #1a1625;
+  /* GitHub Dark theme */
+  .theme-github {
+    --primary-color: #f78166;
+    --primary-hover: #f5654a;
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --text-primary: #c9d1d9;
+    --text-secondary: #8b949e;
+    --border-color: #30363d;
+    --nav-bg: rgba(13, 17, 23, 0.95);
+    --sidebar-bg: #0d1117;
+    --accent-bg: #f78166;
+    --accent-text: #ffffff;
   }
 
-  /* Warm Sunset theme - Light */
-  .theme-warm {
-    --primary-color: #f97316;
-    --primary-hover: #ea580c;
-    --bg-primary: #fff7ed;
-    --bg-secondary: #fed7aa;
-    --text-primary: #7c2d12;
-    --text-secondary: #ea580c;
-    --border-color: #fed7aa;
-    --nav-bg: rgba(255, 247, 237, 0.95);
-    --sidebar-bg: #fff7ed;
+  /* Dracula theme */
+  .theme-dracula {
+    --primary-color: #bd93f9;
+    --primary-hover: #a855f7;
+    --bg-primary: #282a36;
+    --bg-secondary: #44475a;
+    --text-primary: #f8f8f2;
+    --text-secondary: #6272a4;
+    --border-color: #6272a4;
+    --nav-bg: rgba(40, 42, 54, 0.95);
+    --sidebar-bg: #282a36;
+    --accent-bg: #bd93f9;
+    --accent-text: #ffffff;
+  }
+
+  /* Monokai theme */
+  .theme-monokai {
+    --primary-color: #f92672;
+    --primary-hover: #e91e63;
+    --bg-primary: #272822;
+    --bg-secondary: #3e3d32;
+    --text-primary: #f8f8f2;
+    --text-secondary: #75715e;
+    --border-color: #75715e;
+    --nav-bg: rgba(39, 40, 34, 0.95);
+    --sidebar-bg: #272822;
+    --accent-bg: #f92672;
+    --accent-text: #ffffff;
+  }
+
+  /* Solarized Dark theme */
+  .theme-solarized {
+    --primary-color: #268bd2;
+    --primary-hover: #1e7bb8;
+    --bg-primary: #002b36;
+    --bg-secondary: #073642;
+    --text-primary: #839496;
+    --text-secondary: #586e75;
+    --border-color: #586e75;
+    --nav-bg: rgba(0, 43, 54, 0.95);
+    --sidebar-bg: #002b36;
+    --accent-bg: #268bd2;
+    --accent-text: #ffffff;
   }
 
   /* Theme-aware utility classes */
@@ -219,8 +259,8 @@
 
 @layer components {
   .btn-primary {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: var(--accent-bg);
+    color: var(--accent-text);
     font-weight: 500;
     padding: 0.5rem 1rem;
     border-radius: 0.75rem;
@@ -273,8 +313,8 @@
   
   .input:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgb(34 197 94 / 0.1);
+    border-color: var(--accent-bg);
+    box-shadow: 0 0 0 3px rgb(0 0 0 / 0.1);
   }
   
   .input::placeholder {
@@ -283,5 +323,23 @@
   
   .text-muted {
     color: var(--text-secondary);
+  }
+
+  /* Accent-aware classes */
+  .accent-bg {
+    background-color: var(--accent-bg);
+  }
+
+  .accent-text {
+    color: var(--accent-text);
+  }
+
+  .accent-border {
+    border-color: var(--accent-bg);
+  }
+
+  .accent-focus:focus {
+    border-color: var(--accent-bg);
+    box-shadow: 0 0 0 3px var(--accent-bg);
   }
 }

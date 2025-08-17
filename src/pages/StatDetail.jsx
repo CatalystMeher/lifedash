@@ -159,8 +159,8 @@ export default function StatDetail() {
                 onClick={() => setLifetimePeriod(period.key)}
                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${
                   lifetimePeriod === period.key
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    ? 'accent-bg accent-text'
+                    : 'theme-button-secondary'
                 }`}
               >
                 {period.label}
@@ -169,7 +169,7 @@ export default function StatDetail() {
           </div>
         </div>
         <div className="text-center">
-          <h3 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+          <h3 className="text-4xl font-bold theme-text-4xl">
             {lifetimeTotal}{unit ? ` ${unit}` : ''}
           </h3>
         </div>
@@ -193,7 +193,7 @@ export default function StatDetail() {
                 <button 
                   key={n} 
                   onClick={()=>setNumValue(String((Number(numValue||0))+n))} 
-                  className="px-3 py-2 text-sm rounded-lg border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  className="px-3 py-2 text-sm rounded-lg border theme-border hover:theme-bg-secondary transition-colors"
                 >
                   +{n}
                 </button>
@@ -230,7 +230,7 @@ export default function StatDetail() {
                 <button 
                   key={n} 
                   onClick={()=>setDurValue(String((Number(durValue||0))+n))} 
-                  className="px-3 py-2 text-sm rounded-lg border border-border-light dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  className="px-3 py-2 text-sm rounded-lg border theme-border hover:theme-bg-secondary transition-colors"
                 >
                   +{n}m
                 </button>
@@ -282,7 +282,7 @@ export default function StatDetail() {
       {/* Chart */}
       <div className="p-6 card">
         <div className="flex items-center justify-between mb-6">
-                     <div className="text-base font-semibold text-gray-900 dark:text-gray-100">Last {range} days</div>
+                     <div className="text-base font-semibold theme-text-lg">Last {range} days</div>
           <div className="flex gap-2 flex-wrap">
             {[7,30,90].map(n=>(
               <button 
@@ -290,8 +290,8 @@ export default function StatDetail() {
                 onClick={()=>setRange(n)}
                 className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all duration-200 ${
                                      range===n 
-                     ? 'bg-green-500 text-white border-green-500' 
-                     : 'btn-secondary'
+                     ? 'accent-bg accent-text border-current' 
+                     : 'theme-button-secondary'
                 }`}
               >
                 {n}d
@@ -299,7 +299,7 @@ export default function StatDetail() {
             ))}
           </div>
         </div>
-        <div className="h-64 mb-4">
+        <div className="h-64 mb-4 theme-text">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
               <CartesianGrid strokeOpacity={0.2} vertical={false} stroke="#e5e5e5" />
@@ -316,10 +316,10 @@ export default function StatDetail() {
               <Line 
                 type="monotone" 
                 dataKey="v" 
-                stroke="#22c55e" 
+                stroke="currentColor" 
                 strokeWidth={3} 
-                dot={{ fill: '#22c55e', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#22c55e', strokeWidth: 2 }}
+                dot={{ fill: 'currentColor', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: 'currentColor', strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -329,17 +329,17 @@ export default function StatDetail() {
 
       {/* Recent entries */}
       <div className="p-6 card">
-                 <div className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent</div>
+                 <div className="text-base font-semibold theme-text-lg mb-4">Recent</div>
         <ul className="space-y-3">
           {[...entries].slice(-10).reverse().map(e => (
-            <li key={e.id} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+            <li key={e.id} className="flex items-center justify-between py-2 border-b theme-border last:border-b-0">
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted">{dayjs(e.day).format('DD MMM')}</span>
-                <span className="font-medium text-gray-900 dark:text-gray-100">
+                <span className="font-medium theme-text">
                   {typeof e.value === 'number' && !isNaN(e.value) ? e.value : (e.note ? 'note' : '—')}
                 </span>
                 {e.note && (
-                  <span className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-32">
+                  <span className="text-sm theme-text-secondary truncate max-w-32">
                     {e.note}
                   </span>
                 )}

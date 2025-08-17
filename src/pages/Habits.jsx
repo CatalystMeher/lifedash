@@ -7,6 +7,7 @@ import useUser from '../hooks/useUser'
 import CreateHabitModal from '../components/CreateHabitModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { Check, X, Edit, Trash2 } from 'lucide-react'
+import { triggerConfetti } from '../lib/confetti'
 
 function fetchHabits() {
   return supabase.from('habits').select('*').order('inserted_at', { ascending: false })
@@ -44,7 +45,14 @@ export default function Habits() {
       user_id: user.id, habit_id: h.id, day: today, done
     }, { onConflict: 'user_id,habit_id,day' })
     if (error) return toast.error(error.message)
-    toast.success(done ? 'Marked done' : 'Marked not done')
+    
+    if (done) {
+      triggerConfetti()
+      toast.success('Marked done')
+    } else {
+      toast.success('Marked not done')
+    }
+    
     setTodayMap(m => new Map(m.set(h.id, done)))
   }
 
@@ -128,8 +136,8 @@ export default function Habits() {
                     onClick={() => toggle(h)}
                     className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
                       done 
-                        ? 'bg-green-500 text-white' 
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-400'
+                        ? 'accent-bg accent-text' 
+                        : 'theme-bg-secondary theme-text-secondary'
                     }`}
                     title="Tap to toggle today"
                   >

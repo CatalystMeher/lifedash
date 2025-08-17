@@ -109,7 +109,7 @@ export default function CreateHabitModal({ open, onClose, user, onCreated, editi
             <label className="text-sm text-muted mb-2 block">Color</label>
             <input 
               type="color" 
-              className="w-full h-12 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer"
+              className="w-full h-12 rounded-xl theme-border cursor-pointer"
               value={form.color} 
               onChange={e=>setForm(s=>({...s,color:e.target.value}))}
             />
@@ -123,11 +123,11 @@ export default function CreateHabitModal({ open, onClose, user, onCreated, editi
                 key={d.v} 
                 type="button" 
                 onClick={()=>toggleDay(d.v)}
-                                 className={`px-3 py-2 text-sm font-medium rounded-xl border transition-all duration-200 ${
-                   form.days.has(d.v)
-                     ? 'bg-green-500 text-white border-green-500' 
-                     : 'btn-secondary'
-                 }`}
+                className={`px-3 py-2 text-sm font-medium rounded-xl border transition-all duration-200 ${
+                  form.days.has(d.v)
+                    ? 'accent-bg accent-text accent-border' 
+                    : 'theme-button-secondary'
+                }`}
               >
                 {d.l}
               </button>

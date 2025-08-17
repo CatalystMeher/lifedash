@@ -3,6 +3,7 @@ import Modal from './Modal'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import dayjs from 'dayjs'
+import { triggerConfetti } from '../lib/confetti'
 
 export default function QuickLogModal({ open, onClose, user, onSave }) {
   const [stats, setStats] = useState([])
@@ -44,6 +45,8 @@ export default function QuickLogModal({ open, onClose, user, onSave }) {
     const { error } = await supabase.from('entries').insert(rows)
     setSaving(false)
     if (error) return toast.error(error.message)
+    
+    triggerConfetti()
     toast.success('Logged!')
     onClose()
     // Call onSave callback to refresh parent data
@@ -64,12 +67,12 @@ export default function QuickLogModal({ open, onClose, user, onSave }) {
         </div>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-4 min-h-0">
         {stats.map(s => (
           <div key={s.id} className="p-4 card">
             <div className="flex items-center justify-between mb-3">
-              <div className="font-semibold text-gray-900 dark:text-gray-100">{s.name}</div>
-              <div className="text-sm text-muted">{s.type}{s.unit ? ` • ${s.unit}` : ''}</div>
+              <div className="font-semibold theme-text truncate">{s.name}</div>
+              <div className="text-sm text-muted flex-shrink-0 ml-2">{s.type}{s.unit ? ` • ${s.unit}` : ''}</div>
             </div>
 
             {s.type === 'number' && (
@@ -84,13 +87,13 @@ export default function QuickLogModal({ open, onClose, user, onSave }) {
                 />
                 <div className="flex gap-2 flex-wrap">
                   {[+1, +5, +10, +25].map(n => (
-                                         <button 
-                       key={n} 
-                       onClick={() => setValue(s.id, Number(vals[s.id]||0)+n)}
-                       className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                     >
-                       +{n}
-                     </button>
+                    <button 
+                      key={n} 
+                      onClick={() => setValue(s.id, Number(vals[s.id]||0)+n)}
+                      className="px-3 py-2 text-sm rounded-lg theme-border hover:theme-bg-secondary transition-colors"
+                    >
+                      +{n}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -107,13 +110,13 @@ export default function QuickLogModal({ open, onClose, user, onSave }) {
                 />
                 <div className="flex gap-2 flex-wrap">
                   {[5, 15, 25].map(n => (
-                                         <button 
-                       key={n} 
-                       onClick={() => setValue(s.id, Number(vals[s.id]||0)+n)}
-                       className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                     >
-                       +{n}m
-                     </button>
+                    <button 
+                      key={n} 
+                      onClick={() => setValue(s.id, Number(vals[s.id]||0)+n)}
+                      className="px-3 py-2 text-sm rounded-lg theme-border hover:theme-bg-secondary transition-colors"
+                    >
+                      +{n}m
+                    </button>
                   ))}
                 </div>
               </div>
@@ -122,7 +125,7 @@ export default function QuickLogModal({ open, onClose, user, onSave }) {
             {s.type === 'text' && (
               <textarea 
                 rows={3} 
-                className="input resize-none"
+                className="input resize-none w-full"
                 placeholder="Note for today…" 
                 value={vals[s.id] ?? ''}
                 onChange={e => setValue(s.id, e.target.value)} 
@@ -133,8 +136,8 @@ export default function QuickLogModal({ open, onClose, user, onSave }) {
         {!stats.length && (
           <div className="text-center p-8 card">
             <div className="text-4xl mb-4">📊</div>
-            <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No stats yet</div>
-            <div className="text-muted">Create one first to start logging.</div>
+            <div className="text-lg font-semibold theme-text-lg mb-2">No stats yet</div>
+            <div className="text-muted">Create your first stat to start tracking!</div>
           </div>
         )}
       </div>

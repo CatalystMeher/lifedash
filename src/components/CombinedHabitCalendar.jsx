@@ -52,13 +52,13 @@ export default function CombinedHabitCalendar({ habits, user }) {
   return (
     <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
-        <div className="font-semibold text-gray-900 dark:text-gray-100">{month.format('MMMM YYYY')}</div>
+        <div className="font-semibold theme-text">{month.format('MMMM YYYY')}</div>
         <div className="text-sm text-muted">Combined View</div>
       </div>
       
       {/* Legend */}
-      <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Habits:</div>
+      <div className="mb-4 p-3 theme-bg-secondary rounded-lg">
+        <div className="text-sm font-medium theme-text mb-2">Habits:</div>
         <div className="flex flex-wrap gap-2">
           {habits.map(habit => (
             <div key={habit.id} className="flex items-center gap-1">
@@ -66,7 +66,7 @@ export default function CombinedHabitCalendar({ habits, user }) {
                 className="w-3 h-3 rounded-sm"
                 style={{ backgroundColor: habit.color || '#e5e5e5' }}
               />
-              <span className="text-xs text-gray-600 dark:text-gray-400">{habit.name}</span>
+              <span className="text-xs theme-text-secondary">{habit.name}</span>
             </div>
           ))}
         </div>
@@ -83,13 +83,13 @@ export default function CombinedHabitCalendar({ habits, user }) {
             <div key={key}
               className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center text-sm font-medium transition-all duration-200 ${
                 completedHabits.length > 0
-                  ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
-                  : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                  ? 'accent-bg accent-border'
+                  : 'theme-bg-secondary theme-border'
               } ${
                 dim ? 'opacity-40' : ''
               }`}>
               <div className="flex flex-col items-center">
-                <span className="text-xs text-gray-900 dark:text-gray-100">{d.date()}</span>
+                <span className="text-xs theme-text">{d.date()}</span>
                 {!dim && completedHabits.length > 0 && (
                   <div className="mt-1 flex flex-wrap gap-0.5 justify-center max-w-full">
                     {completedHabits.map(habit => (

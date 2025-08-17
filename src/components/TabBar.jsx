@@ -21,7 +21,7 @@ export default function TabBar() {
   const { pathname } = useLocation()
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t theme-border theme-nav-bg shadow-sm">
-      <div className="container mx-auto px-4 grid grid-cols-6">
+      <div className="flex justify-around items-center px-2 py-2">
         {tabs.map((tab) => {
           const active = pathname === tab.to
           const IconComponent = tab.Icon
@@ -29,23 +29,25 @@ export default function TabBar() {
             <NavLink
               key={tab.to}
               to={tab.to}
-              className="flex flex-col items-center justify-center py-3 transition-all duration-200"
+              className="flex flex-col items-center justify-center py-2 px-1 min-w-0 flex-1 transition-all duration-200"
             >
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-2xl transition-all duration-200 ${
+                className={`flex items-center justify-center w-10 h-10 rounded-2xl transition-all duration-200 mb-1 ${
                   active
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 scale-110'
+                    ? 'accent-bg scale-110'
                     : 'bg-transparent theme-text-secondary hover:theme-bg-secondary'
                 }`}
               >
                 <IconComponent
                   size={20}
-                  className="transition-colors duration-200"
+                  className={`transition-colors duration-200 ${
+                    active ? 'accent-text' : ''
+                  }`}
                 />
               </div>
               <span
-                className={`text-xs mt-1 font-medium transition-colors duration-200 ${
-                  active ? 'text-green-600 dark:text-green-400' : 'theme-text-secondary'
+                className={`text-xs font-medium transition-colors duration-200 text-center truncate w-full ${
+                  active ? 'accent-text font-semibold' : 'theme-text-secondary'
                 }`}
               >
                 {tab.label}

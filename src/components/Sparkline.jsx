@@ -2,7 +2,7 @@ import { LineChart, Line, ResponsiveContainer } from 'recharts'
 
 export default function Sparkline({ data = [] }) {
   return (
-    <div className="h-12 w-full">
+    <div className="h-12 w-full theme-text">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
           <Line

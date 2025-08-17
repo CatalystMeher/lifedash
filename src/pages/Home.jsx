@@ -12,6 +12,7 @@ import * as LucideIcons from 'lucide-react'
 import dayjs from 'dayjs'
 import { Check, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { triggerConfetti } from '../lib/confetti'
 
 // Number formatting function
 function formatNumber(num) {
@@ -170,7 +171,14 @@ export default function Home() {
       user_id: user.id, habit_id: habit.id, day: tkey, done
     }, { onConflict: 'user_id,habit_id,day' })
     if (error) return toast.error(error.message)
-    toast.success(done ? 'Marked done' : 'Marked not done')
+    
+    if (done) {
+      triggerConfetti()
+      toast.success('Marked done')
+    } else {
+      toast.success('Marked not done')
+    }
+    
     // Refetch checkins to update UI
     queryClient.invalidateQueries(['habit-checkins-today'])
   }
@@ -272,7 +280,7 @@ export default function Home() {
             <p className="text-base font-semibold theme-text-lg">This week (focus)</p>
             <span className="text-xs text-muted">last 7 days</span>
           </div>
-          <div className="text-green-500">
+          <div className="theme-text">
             <Sparkline data={spark.map(x => ({ d: x.d, v: x.v }))} />
           </div>
         </Card>
@@ -295,7 +303,7 @@ export default function Home() {
                   onClick={() => setStatsPeriod(period.key)}
                   className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${
                     statsPeriod === period.key
-                      ? 'bg-green-500 text-white'
+                      ? 'accent-bg accent-text'
                       : 'theme-button-secondary hover:theme-button-secondary'
                   }`}
                 >
@@ -337,10 +345,10 @@ export default function Home() {
 
       {stats.length === 0 && (
         <section>
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Stats</h4>
+          <h4 className="text-lg font-semibold theme-text-lg mb-4">Stats</h4>
           <div className="text-center p-8 card">
             <div className="text-4xl mb-4">📊</div>
-            <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No stats yet</div>
+            <div className="text-lg font-semibold theme-text-lg mb-2">No stats yet</div>
             <div className="text-muted">Create your first stat to start tracking!</div>
           </div>
         </section>
@@ -349,7 +357,7 @@ export default function Home() {
       {/* Today's Habits */}
       {todaysHabits.length > 0 && (
         <section>
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Today's Habits</h4>
+          <h4 className="text-lg font-semibold theme-text-lg mb-4">Today's Habits</h4>
           <div className="space-y-3">
             {todaysHabits.map(habit => {
               const done = doneSet.has(habit.id)
@@ -361,8 +369,8 @@ export default function Home() {
                         onClick={() => toggleHabit(habit)}
                         className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
                           done 
-                            ? 'bg-green-500 text-white' 
-                            : 'bg-gray-200 dark:bg-gray-700 text-gray-400'
+                            ? 'accent-bg accent-text' 
+                            : 'theme-bg-secondary theme-text-secondary'
                         }`}
                         title="Tap to toggle"
                       >
@@ -373,7 +381,7 @@ export default function Home() {
                         )}
                       </button>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{habit.name}</p>
+                        <p className="font-medium theme-text">{habit.name}</p>
                         <p className="text-sm text-muted">Today: {done ? 'Done' : 'Not yet'}</p>
                       </div>
                     </div>
@@ -387,10 +395,10 @@ export default function Home() {
 
       {todaysHabits.length === 0 && habits.length > 0 && (
         <section>
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Today's Habits</h4>
+          <h4 className="text-lg font-semibold theme-text-lg mb-4">Today's Habits</h4>
           <div className="text-center p-8 card">
             <div className="text-4xl mb-4">✅</div>
-            <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No habits scheduled today</div>
+            <div className="text-lg font-semibold theme-text-lg mb-2">No habits scheduled today</div>
             <div className="text-muted">You have {habits.length} habit{habits.length !== 1 ? 's' : ''} but none are scheduled for today.</div>
           </div>
         </section>
@@ -398,10 +406,10 @@ export default function Home() {
 
       {habits.length === 0 && (
         <section>
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Today's Habits</h4>
+          <h4 className="text-lg font-semibold theme-text-lg mb-4">Today's Habits</h4>
           <div className="text-center p-8 card">
             <div className="text-4xl mb-4">✅</div>
-            <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No habits yet</div>
+            <div className="text-lg font-semibold theme-text-lg mb-2">No habits yet</div>
             <div className="text-muted">Create your first habit to start building good routines!</div>
           </div>
         </section>

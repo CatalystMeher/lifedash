@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import useUser from '../hooks/useUser'
 import toast from 'react-hot-toast'
 import { useTheme } from '../contexts/ThemeContext'
-import { Palette, Sun, Moon, Droplets, Crown, Sunset } from 'lucide-react'
+import { Palette, Sun, Moon, Droplets, Github, Zap, Code, Eye } from 'lucide-react'
 
 export default function Settings() {
   const { user } = useUser()
@@ -13,11 +13,13 @@ export default function Settings() {
   const [isResetting, setIsResetting] = useState(false)
 
   const themeOptions = [
-    { key: 'light', icon: Sun, color: 'bg-yellow-500' },
-    { key: 'dark', icon: Moon, color: 'bg-gray-800' },
-    { key: 'blue', icon: Droplets, color: 'bg-blue-600' },
-    { key: 'purple', icon: Crown, color: 'bg-purple-600' },
-    { key: 'warm', icon: Sunset, color: 'bg-orange-500' }
+    { key: 'light', icon: Sun, accentColor: '#fbbf24', textColor: '#000000' },
+    { key: 'dark', icon: Moon, accentColor: '#6b7280', textColor: '#ffffff' },
+    { key: 'blue', icon: Droplets, accentColor: '#3b82f6', textColor: '#ffffff' },
+    { key: 'github', icon: Github, accentColor: '#f78166', textColor: '#ffffff' },
+    { key: 'dracula', icon: Zap, accentColor: '#bd93f9', textColor: '#ffffff' },
+    { key: 'monokai', icon: Code, accentColor: '#f92672', textColor: '#ffffff' },
+    { key: 'solarized', icon: Eye, accentColor: '#268bd2', textColor: '#ffffff' }
   ]
 
   const handleResetData = async () => {
@@ -80,16 +82,16 @@ export default function Settings() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h2>
+      <h2 className="theme-text-2xl">Settings</h2>
       
       {/* Theme Selection */}
       <div className="p-6 card">
         <div className="flex items-center gap-2 mb-4">
-          <Palette className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Theme</h3>
+          <Palette className="w-5 h-5 theme-text-secondary" />
+          <h3 className="theme-text-lg">Theme</h3>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {themeOptions.map(({ key, icon: Icon, color }) => {
+          {themeOptions.map(({ key, icon: Icon, accentColor, textColor }) => {
             const theme = themes[key]
             const isActive = currentTheme === key
             return (
@@ -98,25 +100,36 @@ export default function Settings() {
                 onClick={() => changeTheme(key)}
                 className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                   isActive
-                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    ? 'accent-border accent-bg'
+                    : 'theme-border hover:theme-bg-secondary'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>
-                    <Icon className="w-4 h-4 text-white" />
+                  <div 
+                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: accentColor }}
+                  >
+                    <Icon className="w-4 h-4" style={{ color: textColor }} />
                   </div>
-                  <div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                  <div className="flex-1 min-w-0">
+                    <div 
+                      className={`font-medium truncate ${
+                        isActive ? 'accent-text' : 'theme-text'
+                      }`}
+                    >
                       {theme.name}
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                    <div 
+                      className={`text-sm truncate ${
+                        isActive ? 'accent-text opacity-80' : 'theme-text-secondary'
+                      }`}
+                    >
                       {theme.description}
                     </div>
                   </div>
                   {isActive && (
-                    <div className="ml-auto">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="ml-auto flex-shrink-0">
+                      <div className="w-2 h-2 accent-bg rounded-full"></div>
                     </div>
                   )}
                 </div>
@@ -127,7 +140,7 @@ export default function Settings() {
       </div>
       
       <div className="p-6 card">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Account</h3>
+        <h3 className="theme-text-lg mb-4">Account</h3>
         <div className="space-y-3">
           <button
             onClick={() => supabase.auth.signOut()}
@@ -150,9 +163,9 @@ export default function Settings() {
         <div className="fixed inset-0 z-50 animate-fade-in">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowResetDialog(false)} />
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl animate-slide-up">
+            <div className="w-full max-w-md card rounded-2xl shadow-xl animate-slide-up">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                <h3 className="theme-text-lg mb-2">
                   Reset All Data
                 </h3>
                 <p className="text-sm text-muted mb-4">
@@ -190,7 +203,7 @@ export default function Settings() {
                     className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
                       resetText === 'DELETE ALL DATA' && !isResetting
                         ? 'bg-red-500 hover:bg-red-600 text-white active:scale-95'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                        : 'theme-bg-secondary theme-text-secondary cursor-not-allowed'
                     }`}
                   >
                     {isResetting ? 'Resetting...' : 'Reset All Data'}

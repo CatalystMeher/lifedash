@@ -18,24 +18,44 @@ export const themes = {
     description: 'Deep blue dark theme',
     key: 'blue'
   },
-  purple: {
-    name: 'Royal Purple',
-    description: 'Elegant purple dark theme',
-    key: 'purple'
+  github: {
+    name: 'GitHub Dark',
+    description: 'GitHub-inspired dark theme',
+    key: 'github'
   },
-  warm: {
-    name: 'Warm Sunset',
-    description: 'Cozy orange light theme',
-    key: 'warm'
+  dracula: {
+    name: 'Dracula',
+    description: 'Vibrant dark theme',
+    key: 'dracula'
+  },
+  monokai: {
+    name: 'Monokai',
+    description: 'Classic dark theme',
+    key: 'monokai'
+  },
+  solarized: {
+    name: 'Solarized Dark',
+    description: 'Easy on the eyes',
+    key: 'solarized'
   }
 }
 
 export function ThemeProvider({ children }) {
-  const [currentTheme, setCurrentTheme] = useState('light')
+  const [currentTheme, setCurrentTheme] = useState('dark') // Default to dark
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light'
+    // Load saved theme from localStorage, default to 'dark' if none exists
+    const savedTheme = localStorage.getItem('theme') || 'dark'
     setCurrentTheme(savedTheme)
+    
+    // Apply the theme immediately on mount
+    const root = document.documentElement
+    
+    // Remove all theme classes
+    root.classList.remove('theme-light', 'theme-dark', 'theme-blue', 'theme-github', 'theme-dracula', 'theme-monokai', 'theme-solarized')
+    
+    // Add the current theme class
+    root.classList.add(`theme-${savedTheme}`)
   }, [])
 
   const changeTheme = (themeName) => {
@@ -46,15 +66,11 @@ export function ThemeProvider({ children }) {
     const root = document.documentElement
     
     // Remove all theme classes
-    root.classList.remove('theme-light', 'theme-dark', 'theme-blue', 'theme-purple', 'theme-warm')
+    root.classList.remove('theme-light', 'theme-dark', 'theme-blue', 'theme-github', 'theme-dracula', 'theme-monokai', 'theme-solarized')
     
     // Add the new theme class
     root.classList.add(`theme-${themeName}`)
   }
-
-  useEffect(() => {
-    changeTheme(currentTheme)
-  }, [currentTheme])
 
   return (
     <ThemeContext.Provider value={{ currentTheme, changeTheme, themes }}>

@@ -137,7 +137,7 @@ export default function Analytics() {
               onClick={() => setViewMode(mode.key)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 viewMode === mode.key
-                  ? 'bg-green-500 text-white'
+                  ? 'accent-bg accent-text'
                   : 'theme-button-secondary'
               }`}
             >
@@ -168,7 +168,7 @@ export default function Analytics() {
                       onClick={() => setLifetimePeriod(period.key)}
                       className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${
                         lifetimePeriod === period.key
-                          ? 'bg-green-500 text-white'
+                          ? 'accent-bg accent-text'
                           : 'theme-button-secondary'
                       }`}
                     >
@@ -208,7 +208,7 @@ export default function Analytics() {
                     <button key={n} onClick={()=>setRange(n)}
                       className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all duration-200 ${
                                          range===n 
-                       ? 'bg-green-500 text-white border-green-500' 
+                       ? 'accent-bg accent-text border-current' 
                        : 'theme-button-secondary'
                       }`}>
                       {n}d
@@ -218,7 +218,7 @@ export default function Analytics() {
               </div>
             </div>
 
-            <div className="h-64 mb-4">
+            <div className="h-64 mb-4 theme-text">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data}>
                   <CartesianGrid strokeOpacity={0.2} vertical={false} stroke="#e5e5e5" />
@@ -235,10 +235,10 @@ export default function Analytics() {
                   <Line 
                     type="monotone" 
                     dataKey="v" 
-                    stroke="#22c55e" 
+                    stroke="currentColor" 
                     strokeWidth={3} 
-                    dot={{ fill: '#22c55e', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, stroke: '#22c55e', strokeWidth: 2 }}
+                    dot={{ fill: 'currentColor', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, stroke: 'currentColor', strokeWidth: 2 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -275,9 +275,9 @@ export default function Analytics() {
                 <button
                   key={mode.key}
                   onClick={() => setHabitsViewMode(mode.key)}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     habitsViewMode === mode.key
-                      ? 'bg-green-500 text-white'
+                      ? 'accent-bg accent-text'
                       : 'theme-button-secondary'
                   }`}
                 >

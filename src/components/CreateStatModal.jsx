@@ -112,16 +112,16 @@ export default function CreateStatModal({ open, onClose, user, onCreated, editin
             <button
               type="button"
               onClick={() => setShowIconPicker(true)}
-              className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-700 flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+              className="w-full p-3 border theme-border rounded-xl theme-bg-secondary flex items-center gap-3 hover:theme-bg transition-colors"
             >
-              <div className="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg theme-bg flex items-center justify-center">
                 {form.icon ? (
-                  <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  <Settings className="w-4 h-4 theme-text-secondary" />
                 ) : (
-                  <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  <Settings className="w-4 h-4 theme-text-secondary" />
                 )}
               </div>
-              <span className="text-gray-900 dark:text-gray-100">
+              <span className="theme-text">
                 {form.icon || 'Choose an icon'}
               </span>
             </button>
@@ -153,7 +153,7 @@ export default function CreateStatModal({ open, onClose, user, onCreated, editin
               <label className="text-sm text-muted mb-2 block">Color</label>
               <input 
                 type="color" 
-                className="w-full h-12 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer"
+                className="w-full h-12 rounded-xl theme-border cursor-pointer"
                 value={form.color} 
                 onChange={e=>set('color', e.target.value)} 
               />

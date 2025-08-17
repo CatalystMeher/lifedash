@@ -38,7 +38,7 @@ export default function HabitCalendar({ habit, user }) {
   return (
     <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
-        <div className="font-semibold text-gray-900 dark:text-gray-100">{month.format('MMMM YYYY')}</div>
+        <div className="font-semibold theme-text">{month.format('MMMM YYYY')}</div>
         <div className="text-sm text-muted">Sun–Sat</div>
       </div>
       <div className="grid grid-cols-7 gap-2">
@@ -50,8 +50,8 @@ export default function HabitCalendar({ habit, user }) {
             <div key={key}
               className={`aspect-square rounded-xl border-2 flex items-center justify-center text-sm font-medium transition-all duration-200 ${
                 done 
-                  ? 'bg-green-500 border-green-500 text-white' 
-                  : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100'
+                  ? 'accent-bg accent-text accent-border' 
+                  : 'theme-bg-secondary theme-border theme-text'
               } ${
                 dim ? 'opacity-40' : ''
               }`}>
@@ -62,7 +62,7 @@ export default function HabitCalendar({ habit, user }) {
                     {done ? (
                       <Check className="w-3 h-3" />
                     ) : (
-                      <X className="w-3 h-3 text-gray-400" />
+                      <X className="w-3 h-3 theme-text-secondary" />
                     )}
                   </div>
                 )}
