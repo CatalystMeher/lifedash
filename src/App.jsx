@@ -11,29 +11,6 @@ import Auth from './pages/Auth'
 import StatDetail from './pages/StatDetail'
 import ErrorBoundary from './components/ErrorBoundary'
 import { ThemeProvider } from './contexts/ThemeContext'
-import useUser from './hooks/useUser'
-
-// Component to handle root path redirect
-function RootRedirect() {
-  const { user, loading } = useUser()
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg font-semibold mb-2">Loading LifeDash...</div>
-          <div className="text-sm text-muted">Please wait while we set up your dashboard</div>
-        </div>
-      </div>
-    )
-  }
-  
-  if (!user) {
-    return <Navigate to="/auth" replace />
-  }
-  
-  return <Navigate to="/home" replace />
-}
 
 export default function App() {
   return (
@@ -41,7 +18,7 @@ export default function App() {
       <ErrorBoundary>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<RootRedirect />} />
+          <Route path="/" element={<Navigate to="/home" replace />} />
           <Route element={<RequireAuth />}>
             <Route element={<MainLayout />}>
               <Route path="/home" element={<Home />} />
