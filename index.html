@@ -15,9 +15,30 @@
     <title>LifeDash</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Fallback content if React doesn't load -->
+      <div id="fallback" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f8f9fa; display: flex; justify-content: center; align-items: center; font-family: system-ui, -apple-system, sans-serif;">
+        <div style="text-align: center; padding: 2rem;">
+          <h1 style="margin-bottom: 1rem; color: #333;">Loading LifeDash...</h1>
+          <p style="color: #666; margin-bottom: 1rem;">If this page doesn't load automatically, please click the link below.</p>
+          <a href="/home" style="color: #22c55e; text-decoration: none; font-weight: 600;">Continue to LifeDash</a>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
+      // Fallback redirect for root path
+      if (window.location.pathname === '/') {
+        setTimeout(function() {
+          // Check if React has loaded by looking for the root element content
+          const root = document.getElementById('root');
+          if (root && root.children.length === 0) {
+            // React hasn't loaded, show fallback
+            document.getElementById('fallback').style.display = 'flex';
+          }
+        }, 2000);
+      }
+      
       // Register service worker for PWA
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

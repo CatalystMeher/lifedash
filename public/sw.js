@@ -1,11 +1,8 @@
 const CACHE_NAME = 'lifedash-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
   '/manifest.json',
-  '/lifedash-icon.svg',
-  '/src/main.jsx',
-  '/src/App.jsx',
+  '/logo.png',
+  '/assets/',
   '/src/index.css'
 ];
 
@@ -22,6 +19,19 @@ self.addEventListener('install', (event) => {
 
 // Fetch event - serve from cache if available
 self.addEventListener('fetch', (event) => {
+  // Don't cache navigation requests (HTML pages)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          // If fetch fails, return the index.html for SPA routing
+          return caches.match('/index.html');
+        })
+    );
+    return;
+  }
+
+  // For other requests, try cache first, then network
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
