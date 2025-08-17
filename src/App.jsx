@@ -18,9 +18,9 @@ export default function App() {
       <ErrorBoundary>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/" element={<Navigate to="/home" replace />} />
           <Route element={<RequireAuth />}>
             <Route element={<MainLayout />}>
-              <Route index element={<Navigate to="/home" replace />} />
               <Route path="/home" element={<Home />} />
               <Route path="/stats" element={<Stats />} />
               <Route path="/habits" element={<Habits />} />
