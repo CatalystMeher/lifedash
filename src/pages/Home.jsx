@@ -1,423 +1,295 @@
-import { useMemo, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import Card from '../components/Card'
-import Sparkline from '../components/Sparkline'
-import FAB from '../components/FAB'
-import QuickLogModal from '../components/QuickLogModal'
-import InstallPrompt from '../components/InstallPrompt'
-import useUser from '../hooks/useUser'
-import { supabase } from '../lib/supabase'
-import { lastNDays, todayKey, daysBetween } from '../lib/dateRange'
-import * as LucideIcons from 'lucide-react'
-import dayjs from 'dayjs'
-import { Check, X } from 'lucide-react'
-import toast from 'react-hot-toast'
-import { triggerConfetti } from '../lib/confetti'
+import React from "react";
+import { Play, Youtube, ArrowRight, Video, Menu } from "lucide-react";
 
-// Number formatting function
-function formatNumber(num) {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
-  } else if (num >= 1000) {
-    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
-  }
-  return num.toString()
-}
+/**
+ * PR ki Duniya — Single‑file React Website (Light Theme)
+ * Style: YouTube‑inspired light UI, red accents, elegant fonts
+ * Fonts: Inter (UI) + Playfair Display (headings) via Google Fonts
+ */
 
-async function fetchStats() {
-  const { data, error } = await supabase.from('stats').select('*').order('inserted_at', { ascending: false })
-  if (error) throw error
-  return data || []
-}
+const YT_CHANNEL_ID = "UCu6pR0YEOSkrMwsUg3NV0ag"; // PR ki Duniya (canonical channel URL)
+const YT_UPLOADS_PLAYLIST = "UUu6pR0YEOSkrMwsUg3NV0ag"; // Uploads playlist derived from the channel ID
+const YT_CHANNEL_URL = "https://www.youtube.com/c/PRkiDuniya";
+const YT_SUBSCRIBE_URL = "https://www.youtube.com/c/PRkiDuniya?sub_confirmation=1";
 
-async function fetchEntriesFor(statIds, from, to) {
-  if (!statIds.length) return []
-  const { data, error } = await supabase
-    .from('entries')
-    .select('stat_id, day, value')
-    .in('stat_id', statIds)
-    .gte('day', from)
-    .lte('day', to)
-  if (error) throw error
-  return data || []
-}
-
-async function fetchLifetimeEntries(statIds) {
-  if (!statIds.length) return []
-  const { data, error } = await supabase
-    .from('entries')
-    .select('stat_id, value')
-    .in('stat_id', statIds)
-  if (error) throw error
-  return data || []
-}
-
-async function fetchHabits(userId) {
-  const { data, error } = await supabase.from('habits').select('*').eq('user_id', userId).order('inserted_at', { ascending: false })
-  if (error) throw error
-  return data || []
-}
-
-async function fetchTodayCheckins(today, userId) {
-  const { data, error } = await supabase.from('habit_checkins').select('habit_id, done').eq('day', today).eq('user_id', userId)
-  if (error) throw error
-  return data || []
-}
-
-export default function Home() {
-  const { user, loading } = useUser()
-  const queryClient = useQueryClient()
-  const [openQL, setOpenQL] = useState(false)
-  const [statsPeriod, setStatsPeriod] = useState('today') // 'today', '7d', '30d', 'lifetime'
-
-  const { from, to } = lastNDays(7)
-  const tkey = todayKey()
-
-  // all stats
-  const { data: stats = [], error: statsError } = useQuery({
-    queryKey: ['stats-home'],
-    queryFn: fetchStats,
-    enabled: !!user && !loading
-  })
-
-  // entries for all stats
-  const { data: entries = [], error: entriesError } = useQuery({
-    queryKey: ['entries-home', stats.map(s => s.id), from, to],
-    queryFn: () => fetchEntriesFor(stats.map(s => s.id), from, to),
-    enabled: !!user && !loading && !!stats.length
-  })
-
-  // entries for stats based on selected period
-  const { data: periodEntries = [], error: periodEntriesError } = useQuery({
-    queryKey: ['period-entries', stats.map(s => s.id), statsPeriod],
-    queryFn: () => {
-      if (statsPeriod === 'lifetime') {
-        return fetchLifetimeEntries(stats.map(s => s.id))
-      } else if (statsPeriod === 'today') {
-        return fetchEntriesFor(stats.map(s => s.id), tkey, tkey)
-      } else {
-        const days = statsPeriod === '7d' ? 7 : 30
-        const from = dayjs().subtract(days - 1, 'day').format('YYYY-MM-DD')
-        const to = dayjs().format('YYYY-MM-DD')
-        return fetchEntriesFor(stats.map(s => s.id), from, to)
-      }
-    },
-    enabled: !!user && !loading && !!stats.length
-  })
-
-  // habits + today checkins
-  const { data: habits = [], error: habitsError } = useQuery({
-    queryKey: ['habits-home', user?.id],
-    queryFn: () => fetchHabits(user.id),
-    enabled: !!user && !loading
-  })
-  const { data: checkins = [], error: checkinsError } = useQuery({
-    queryKey: ['habit-checkins-today', tkey, user?.id],
-    queryFn: () => fetchTodayCheckins(tkey, user.id),
-    enabled: !!user && !loading
-  })
-
-  // compute values for each stat based on selected period
-  const periodValues = useMemo(() => {
-    const values = new Map()
-    for (const entry of periodEntries) {
-      const stat = stats.find(s => s.id === entry.stat_id)
-      if (stat) {
-        const current = values.get(stat.id) || 0
-        const value = Number(entry.value || 0)
-        if (!isNaN(value)) {
-          values.set(stat.id, current + value)
-        }
-      }
-    }
-    return values
-  }, [periodEntries, stats])
-
-  // compute focus (today + 7-day spark) - only duration stats
-  const durationStats = useMemo(() => stats.filter(s => s.type === 'duration'), [stats])
-  const durationEntries = useMemo(() => entries.filter(e => durationStats.some(s => s.id === e.stat_id)), [entries, durationStats])
-  
-  const spark = useMemo(() => {
-    const days = daysBetween(from, to)
-    const agg = new Map(days.map(d => [d, 0]))
-    for (const e of durationEntries) {
-      const k = e.day
-      const v = Number(e.value || 0)
-      if (!isNaN(v)) agg.set(k, (agg.get(k) || 0) + v)
-    }
-    return days.map(d => ({ d, v: agg.get(d) || 0 }))
-  }, [durationEntries, from, to])
-
-  const focusToday = useMemo(() => {
-    return durationEntries
-      .filter(e => e.day === tkey)
-      .reduce((sum, e) => sum + (Number(e.value || 0) || 0), 0)
-  }, [durationEntries, tkey])
-
-  // habits scheduled today
-  const dayIdx = useMemo(() => new Date().getDay(), [])
-  const todaysHabits = useMemo(
-    () => habits.filter(h => (h.days_of_week || [0,1,2,3,4,5,6]).includes(dayIdx)),
-    [habits, dayIdx]
-  )
-  const doneSet = useMemo(() => new Set(checkins.filter(c => c.done === true).map(c => c.habit_id)), [checkins])
-  const habitsDone = todaysHabits.filter(h => doneSet.has(h.id)).length
-
-  // Toggle habit completion
-  const toggleHabit = async (habit) => {
-    if (!user?.id) return
-    const done = !doneSet.has(habit.id)
-    const { error } = await supabase.from('habit_checkins').upsert({
-      user_id: user.id, habit_id: habit.id, day: tkey, done
-    }, { onConflict: 'user_id,habit_id,day' })
-    if (error) return toast.error(error.message)
-    
-    if (done) {
-      triggerConfetti()
-      toast.success('Marked done')
-    } else {
-      toast.success('Marked not done')
-    }
-    
-    // Refetch checkins to update UI
-    queryClient.invalidateQueries(['habit-checkins-today'])
-  }
-
-  // Refresh function for QuickLogModal
-  const refreshData = () => {
-    queryClient.invalidateQueries(['entries-home'])
-    queryClient.invalidateQueries(['period-entries'])
-    queryClient.invalidateQueries(['lifetime-entries'])
-  }
-
-  // Debug logging
-  console.log('Day index:', dayIdx, 'type:', typeof dayIdx)
-  console.log('All habits:', habits.map(h => ({ id: h.id, name: h.name, days: h.days_of_week, daysType: typeof h.days_of_week })))
-  console.log('Today\'s habits:', todaysHabits.map(h => ({ id: h.id, name: h.name, days: h.days_of_week })))
-  console.log('All checkins:', checkins.map(c => ({ habit_id: c.habit_id, done: c.done, doneType: typeof c.done })))
-  console.log('Done checkins:', checkins.filter(c => c.done === true).map(c => ({ habit_id: c.habit_id, done: c.done, doneType: typeof c.done })))
-  console.log('Done set:', Array.from(doneSet))
-  console.log('Habits done:', habitsDone)
-  console.log('Habits done details:', todaysHabits.filter(h => doneSet.has(h.id)).map(h => ({ id: h.id, name: h.name })))
-
-  // Check for Supabase configuration
-  if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center p-6 card">
-          <div className="text-red-500 font-medium">Missing Supabase configuration</div>
-          <div className="text-sm text-muted mt-2">Please check your environment variables.</div>
-        </div>
-      </div>
-    )
-  }
-
-  // Show loading state while user is being authenticated
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center p-6 card">
-          <div className="text-muted">Loading...</div>
-        </div>
-      </div>
-    )
-  }
-
-  // Show error if any query failed
-  if (statsError || entriesError || periodEntriesError || habitsError || checkinsError) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center p-6 card">
-          <div className="text-red-500 font-medium">Error loading data</div>
-          <div className="text-sm text-muted mt-2">Please try refreshing the page.</div>
-        </div>
-      </div>
-    )
-  }
-
-  const getPeriodLabel = (period) => {
-    switch (period) {
-      case 'today': return 'Today'
-      case '7d': return '7d'
-      case '30d': return '30d'
-      case 'lifetime': return 'All'
-      default: return period
-    }
-  }
-
-  const getPeriodDescription = (period) => {
-    switch (period) {
-      case 'today': return 'today'
-      case '7d': return '7 days'
-      case '30d': return '30 days'
-      case 'lifetime': return 'lifetime'
-      default: return period
-    }
-  }
-
+function NavBar() {
+  const [open, setOpen] = React.useState(false);
+  const links = [
+    { href: "#home", label: "Home" },
+    { href: "#videos", label: "Videos" },
+    { href: "#about", label: "About" },
+    { href: "#contact", label: "Contact" },
+  ];
   return (
-    <div className="space-y-6">
-      {/* Today at a glance */}
-      <section className="grid grid-cols-2 gap-4">
-        <Card className="p-6">
-          <p className="text-sm text-muted mb-2">Focus (min)</p>
-          <div className="flex items-end justify-between">
-            <h3 className="text-3xl font-bold theme-text-3xl">{formatNumber(focusToday)}</h3>
-            <span className="text-xs text-muted">today</span>
+    <header className="sticky top-0 z-40 w-full backdrop-blur bg-white/80 border-b border-slate-200">
+      <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
+        <a href="#home" className="flex items-center gap-2">
+          <div className="h-9 w-9 rounded-xl bg-red-600 text-white grid place-items-center">
+            <Youtube className="h-5 w-5" />
           </div>
-        </Card>
+          <span className="font-semibold tracking-tight">PR ki Duniya</span>
+        </a>
+        <nav className="hidden md:flex items-center gap-6 text-sm">
+          {links.map((l) => (
+            <a key={l.href} href={l.href} className="text-slate-600 hover:text-slate-900 transition">
+              {l.label}
+            </a>
+          ))}
+          <a
+            href={YT_SUBSCRIBE_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl bg-red-600 text-white px-3 py-1.5 hover:bg-red-700 transition"
+          >
+            <Play className="h-4 w-4" /> Subscribe
+          </a>
+        </nav>
+        <button className="md:hidden p-2 rounded-xl border border-slate-200 bg-white" onClick={() => setOpen((v) => !v)}>
+          <Menu className="h-5 w-5 text-slate-700" />
+        </button>
+      </div>
+      {open && (
+        <div className="md:hidden border-t border-slate-200 bg-white">
+          <div className="mx-auto max-w-6xl px-4 py-3 grid gap-3">
+            <a href="#home" className="text-slate-700 hover:text-slate-900">Home</a>
+            <a href="#videos" className="text-slate-700 hover:text-slate-900">Videos</a>
+            <a href="#about" className="text-slate-700 hover:text-slate-900">About</a>
+            <a href="#contact" className="text-slate-700 hover:text-slate-900">Contact</a>
+            <a href={YT_SUBSCRIBE_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-red-600 text-white px-3 py-1.5 hover:bg-red-700 transition w-max">
+              <Play className="h-4 w-4" /> Subscribe
+            </a>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
 
-        <Card className="p-6">
-          <p className="text-sm text-muted mb-2">Habits done</p>
-          <div className="flex items-end justify-between">
-            <h3 className="text-3xl font-bold theme-text-3xl">{habitsDone}/{todaysHabits.length}</h3>
-            <span className="text-xs text-muted">today</span>
-          </div>
-        </Card>
-
-        <Card className="p-6 col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-base font-semibold theme-text-lg">This week (focus)</p>
-            <span className="text-xs text-muted">last 7 days</span>
-          </div>
-          <div className="theme-text">
-            <Sparkline data={spark.map(x => ({ d: x.d, v: x.v }))} />
-          </div>
-        </Card>
-      </section>
-
-      {/* Stats */}
-      {stats.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold theme-text-lg">Stats</h4>
-            <div className="flex gap-2 flex-wrap">
-              {[
-                { key: 'today', label: 'Today' },
-                { key: '7d', label: '7d' },
-                { key: '30d', label: '30d' },
-                { key: 'lifetime', label: 'All' }
-              ].map(period => (
-                <button
-                  key={period.key}
-                  onClick={() => setStatsPeriod(period.key)}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    statsPeriod === period.key
-                      ? 'accent-bg accent-text'
-                      : 'theme-button-secondary hover:theme-button-secondary'
-                  }`}
-                >
-                  {period.label}
-                </button>
-              ))}
+function Hero() {
+  return (
+    <section id="home" className="relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_50%_at_50%_-10%,rgba(255,0,0,0.06),rgba(0,0,0,0)_60%)]" />
+      <div className="mx-auto max-w-6xl px-4 py-14 md:py-20">
+        <div className="grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight leading-tight">
+              Welcome to <span className="text-slate-700">PR ki Duniya</span>
+            </h1>
+            <p className="mt-4 text-slate-600 text-lg">
+              Short, uplifting videos, tips & everyday hacks. Watch the latest uploads and dive into curated playlists — all in one place.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a
+                href={YT_CHANNEL_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 hover:bg-slate-50 transition"
+              >
+                <Youtube className="h-5 w-5 text-red-600" /> Watch on YouTube
+              </a>
+              <a
+                href="#videos"
+                className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 text-white px-4 py-2 hover:bg-black transition"
+              >
+                Browse Videos <ArrowRight className="h-4 w-4" />
+              </a>
+            </div>
+            <div className="mt-8 grid grid-cols-3 gap-3 text-center max-w-md">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="text-2xl font-semibold">Daily</div>
+                <div className="text-xs text-slate-600">Fresh Shorts</div>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="text-2xl font-semibold">Tips</div>
+                <div className="text-xs text-slate-600">Life & Home</div>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="text-2xl font-semibold">Playlists</div>
+                <div className="text-xs text-slate-600">Curated Themes</div>
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {stats.slice(0, 6).map(stat => {
-              const periodValue = periodValues.get(stat.id) || 0
-              const unit = stat.unit || (stat.type === 'duration' ? 'min' : '')
-              const IconComponent = stat.icon && LucideIcons[stat.icon] ? LucideIcons[stat.icon] : LucideIcons.BarChart3
-              return (
-                <Card key={stat.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted mb-1">{stat.name}</p>
-                      <h3 className="text-xl font-bold theme-text-xl">
-                        {formatNumber(periodValue)}{unit ? ` ${unit}` : ''}
-                      </h3>
-                      <p className="text-xs text-muted">
-                        {getPeriodDescription(statsPeriod)}
-                      </p>
-                    </div>
-                    <div 
-                      className="w-8 h-8 rounded-lg flex items-center justify-center"
-                      style={{ background: stat.color || '#e5e5e5' }}
-                    >
-                      <IconComponent className="w-4 h-4 text-white theme-icon" />
-                    </div>
-                  </div>
-                </Card>
-              )
-            })}
+          <div className="relative rounded-3xl border border-slate-200 bg-white p-2 shadow-sm">
+            <div className="aspect-video w-full overflow-hidden rounded-2xl">
+              {/* Uploads playlist — always newest first */}
+              <iframe
+                className="h-full w-full"
+                src={`https://www.youtube.com/embed/videoseries?list=${YT_UPLOADS_PLAYLIST}`}
+                title="PR ki Duniya – Latest Uploads"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+            <div className="absolute -bottom-4 -right-4 hidden md:block rounded-2xl bg-white text-slate-900 px-3 py-2 shadow">
+              <div className="flex items-center gap-2 text-sm font-semibold"><Video className="h-4 w-4 text-red-600" /> Latest uploads</div>
+            </div>
           </div>
-        </section>
-      )}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-      {stats.length === 0 && (
-        <section>
-          <h4 className="text-lg font-semibold theme-text-lg mb-4">Stats</h4>
-          <div className="text-center p-8 card">
-            <div className="text-4xl mb-4">📊</div>
-            <div className="text-lg font-semibold theme-text-lg mb-2">No stats yet</div>
-            <div className="text-muted">Create your first stat to start tracking!</div>
+function Videos() {
+  return (
+    <section id="videos" className="mx-auto max-w-6xl px-4 py-16">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">Watch Videos</h2>
+        <a
+          href={`${YT_CHANNEL_URL}/videos`}
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm text-slate-600 hover:text-slate-900"
+        >
+          See all on YouTube →
+        </a>
+      </div>
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Main continuous playlist player */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="aspect-video w-full overflow-hidden rounded-2xl">
+            <iframe
+              className="h-full w-full"
+              src={`https://www.youtube.com/embed/videoseries?list=${YT_UPLOADS_PLAYLIST}`}
+              title="PR ki Duniya – Uploads Playlist"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
           </div>
-        </section>
-      )}
+          <div className="p-3 text-sm text-slate-600">Autoplays newest uploads from the channel.</div>
+        </div>
 
-      {/* Today's Habits */}
-      {todaysHabits.length > 0 && (
-        <section>
-          <h4 className="text-lg font-semibold theme-text-lg mb-4">Today's Habits</h4>
-          <div className="space-y-3">
-            {todaysHabits.map(habit => {
-              const done = doneSet.has(habit.id)
-              return (
-                <Card key={habit.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => toggleHabit(habit)}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                          done 
-                            ? 'accent-bg accent-text' 
-                            : 'theme-bg-secondary theme-text-secondary'
-                        }`}
-                        title="Tap to toggle"
-                      >
-                        {done ? (
-                          <Check className="w-5 h-5" />
-                        ) : (
-                          <X className="w-5 h-5" />
-                        )}
-                      </button>
-                      <div>
-                        <p className="font-medium theme-text">{habit.name}</p>
-                        <p className="text-sm text-muted">Today: {done ? 'Done' : 'Not yet'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              )
-            })}
+        {/* Quick links */}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <a
+            href={`${YT_CHANNEL_URL}/shorts`}
+            target="_blank"
+            rel="noreferrer"
+            className="group rounded-3xl border border-slate-200 bg-white p-5 hover:bg-slate-50 transition shadow-sm"
+          >
+            <div className="text-lg font-semibold">Shorts</div>
+            <p className="mt-1 text-sm text-slate-600">Bite‑sized, daily inspiration.</p>
+            <div className="mt-8 inline-flex items-center gap-2 text-sm group-hover:translate-x-0.5 transition">
+              Open <ArrowRight className="h-4 w-4" />
+            </div>
+          </a>
+          <a
+            href={`${YT_CHANNEL_URL}/playlists`}
+            target="_blank"
+            rel="noreferrer"
+            className="group rounded-3xl border border-slate-200 bg-white p-5 hover:bg-slate-50 transition shadow-sm"
+          >
+            <div className="text-lg font-semibold">Playlists</div>
+            <p className="mt-1 text-sm text-slate-600">Curated themes & series.</p>
+            <div className="mt-8 inline-flex items-center gap-2 text-sm group-hover:translate-x-0.5 transition">
+              Open <ArrowRight className="h-4 w-4" />
+            </div>
+          </a>
+          <a
+            href={`${YT_CHANNEL_URL}/streams`}
+            target="_blank"
+            rel="noreferrer"
+            className="group rounded-3xl border border-slate-200 bg-white p-5 hover:bg-slate-50 transition sm:col-span-2 shadow-sm"
+          >
+            <div className="text-lg font-semibold">Live</div>
+            <p className="mt-1 text-sm text-slate-600">Catch streams and premiere events.</p>
+            <div className="mt-8 inline-flex items-center gap-2 text-sm group-hover:translate-x-0.5 transition">
+              Open <ArrowRight className="h-4 w-4" />
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function About() {
+  return (
+    <section id="about" className="mx-auto max-w-6xl px-4 py-16">
+      <div className="grid lg:grid-cols-2 gap-8 items-center">
+        <div className="order-2 lg:order-1">
+          <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">About the Channel</h2>
+          <p className="mt-3 text-slate-600 leading-relaxed">
+            PR ki Duniya shares practical life tips, self‑care ideas, home hacks and short motivational clips — mostly in Marathi/Hinglish — crafted to brighten your day. Explore the latest uploads above or jump into themed playlists.
+          </p>
+          <ul className="mt-6 grid sm:grid-cols-2 gap-3 text-sm">
+            <li className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">• Family‑friendly content</li>
+            <li className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">• Shorts + long videos</li>
+            <li className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">• Regular updates</li>
+            <li className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">• Simple, helpful hacks</li>
+          </ul>
+          <div className="mt-6">
+            <a href={YT_SUBSCRIBE_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-2xl bg-red-600 text-white px-4 py-2 hover:bg-red-700 transition">
+              <Play className="h-4 w-4" /> Subscribe on YouTube
+            </a>
           </div>
-        </section>
-      )}
-
-      {todaysHabits.length === 0 && habits.length > 0 && (
-        <section>
-          <h4 className="text-lg font-semibold theme-text-lg mb-4">Today's Habits</h4>
-          <div className="text-center p-8 card">
-            <div className="text-4xl mb-4">✅</div>
-            <div className="text-lg font-semibold theme-text-lg mb-2">No habits scheduled today</div>
-            <div className="text-muted">You have {habits.length} habit{habits.length !== 1 ? 's' : ''} but none are scheduled for today.</div>
+        </div>
+        <div className="order-1 lg:order-2">
+          <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 shadow-sm">
+            <div className="font-display text-5xl font-semibold">PR</div>
+            <div className="mt-2 text-slate-600">ki Duniya</div>
+            <p className="mt-6 text-sm text-slate-600">
+              This website is a lightweight homepage for the channel — fast, mobile‑first and easy to customize.
+            </p>
           </div>
-        </section>
-      )}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-      {habits.length === 0 && (
-        <section>
-          <h4 className="text-lg font-semibold theme-text-lg mb-4">Today's Habits</h4>
-          <div className="text-center p-8 card">
-            <div className="text-4xl mb-4">✅</div>
-            <div className="text-lg font-semibold theme-text-lg mb-2">No habits yet</div>
-            <div className="text-muted">Create your first habit to start building good routines!</div>
+function Contact() {
+  return (
+    <section id="contact" className="mx-auto max-w-6xl px-4 py-16">
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">Contact</h2>
+        <p className="mt-3 text-slate-600">For collaborations and business enquiries, reach out via the YouTube channel page or DM on your preferred platform.</p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <a href={YT_CHANNEL_URL + "/about"} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 hover:bg-slate-50 transition">
+            <Youtube className="h-5 w-5 text-red-600" /> Channel About
+          </a>
+          <a href={YT_CHANNEL_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 hover:bg-slate-50 transition">
+            <Video className="h-5 w-5 text-red-600" /> Open Channel
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-slate-200">
+      <div className="mx-auto max-w-6xl px-4 py-10 text-sm text-slate-600">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>© {new Date().getFullYear()} PR ki Duniya • Unofficial fan site</div>
+          <div className="flex items-center gap-4">
+            <a href={YT_CHANNEL_URL} target="_blank" rel="noreferrer" className="hover:text-slate-900 inline-flex items-center gap-2">
+              <Youtube className="h-4 w-4 text-red-600" /> YouTube
+            </a>
           </div>
-        </section>
-      )}
+        </div>
+      </div>
+    </footer>
+  );
+}
 
-      <FAB onClick={() => setOpenQL(true)} />
-      <QuickLogModal open={openQL} onClose={() => setOpenQL(false)} user={user} onSave={refreshData} />
-      <InstallPrompt />
+export default function PRKiDuniyaSite() {
+  return (
+    <div className="min-h-screen bg-white text-slate-900 font-sans">
+      {/* Elegant fonts (Inter + Playfair Display) */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
+        :root{--font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji','Segoe UI Emoji'; --font-display:'Playfair Display', Georgia, 'Times New Roman', serif;}
+        .font-display{font-family:var(--font-display);} 
+        .font-sans{font-family:var(--font-sans);} 
+      `}</style>
+      <NavBar />
+      <Hero />
+      <Videos />
+      <About />
+      <Contact />
+      <Footer />
     </div>
-  )
+  );
 }
