@@ -5,13 +5,7 @@
 [build.environment]
   NODE_VERSION = "18"
 
-# Explicit redirect for root path
-[[redirects]]
-  from = "/"
-  to = "/index.html"
-  status = 200
-
-# Catch-all redirect for SPA routing
+# SPA routing - all routes go to index.html for React Router to handle
 [[redirects]]
   from = "/*"
   to = "/index.html"
