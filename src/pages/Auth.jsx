@@ -15,23 +15,50 @@ export default function Auth() {
   const [isSettingPassword, setIsSettingPassword] = useState(false)
   const [resetToken, setResetToken] = useState(null)
 
-  // Check URL parameters for password reset
+  // Check URL parameters and session for password reset
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const accessToken = urlParams.get('access_token')
-    const refreshToken = urlParams.get('refresh_token')
-    const type = urlParams.get('type')
-    
-    if (type === 'recovery' && accessToken && refreshToken) {
-      // User clicked password reset link
-      setResetToken({ access_token: accessToken, refresh_token: refreshToken })
-      setAuthMode('resetPassword')
-      // Clear URL parameters
-      window.history.replaceState({}, document.title, window.location.pathname)
-    } else if (urlParams.get('mode') === 'setPassword') {
-      setAuthMode('setPassword')
-      setIsSettingPassword(true)
+    const checkPasswordReset = async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const hash = window.location.hash
+      
+      console.log('URL Search Params:', Object.fromEntries(urlParams.entries()))
+      console.log('URL Hash:', hash)
+      console.log('Full URL:', window.location.href)
+      
+      // Check for different possible password reset formats
+      const accessToken = urlParams.get('access_token') || urlParams.get('token')
+      const refreshToken = urlParams.get('refresh_token')
+      const type = urlParams.get('type')
+      const error = urlParams.get('error')
+      const errorDescription = urlParams.get('error_description')
+      
+      // Check if this is a password reset flow
+      if (type === 'recovery' || type === 'reset' || accessToken) {
+        console.log('Password reset detected:', { type, accessToken, refreshToken })
+        
+        if (accessToken) {
+          setResetToken({ access_token: accessToken, refresh_token: refreshToken })
+          setAuthMode('resetPassword')
+          // Clear URL parameters
+          window.history.replaceState({}, document.title, window.location.pathname)
+        } else if (error) {
+          toast.error(errorDescription || 'Password reset failed')
+        }
+      } else if (urlParams.get('mode') === 'setPassword') {
+        setAuthMode('setPassword')
+        setIsSettingPassword(true)
+      } else {
+        // Check if user is already authenticated (from Supabase redirect)
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+          console.log('User is authenticated, showing password reset form')
+          setAuthMode('resetPassword')
+          setResetToken({ access_token: session.access_token, refresh_token: session.refresh_token })
+        }
+      }
     }
+
+    checkPasswordReset()
   }, [])
 
   async function handleEmailAuth(e) {
