@@ -4,7 +4,8 @@ import toast from 'react-hot-toast'
 import dayjs from 'dayjs'
 import { supabase } from '../lib/supabase'
 import useUser from '../hooks/useUser'
-import { Edit, Trash2, Play } from 'lucide-react'
+import { Edit, Trash2, Play, Maximize2 } from 'lucide-react'
+import FullscreenFocus from '../components/FullscreenFocus'
 
 function fetchDurationStats() {
   return supabase.from('stats').select('*').eq('type','duration').order('inserted_at',{ascending:false})
@@ -80,6 +81,9 @@ export default function Focus() {
   const tickRef = useRef(null)
   const pausedRef = useRef(0)    // total paused seconds
   const lastPauseStart = useRef(null)
+  
+  // Fullscreen state
+  const [isFullscreen, setIsFullscreen] = useState(false)
   
   // Edit session state
   const [editingSession, setEditingSession] = useState(null)
@@ -206,6 +210,7 @@ export default function Focus() {
     setRunning(false)
     setElapsedSec(0)
     clearTimerState()
+    setIsFullscreen(false)
   }
 
   // Session management functions
@@ -334,12 +339,26 @@ export default function Focus() {
               <>
                 <button onClick={pause} className="btn-secondary px-6 py-3">Pause</button>
                 <button onClick={finish} className="btn-primary px-6 py-3">End & Save</button>
+                <button 
+                  onClick={() => setIsFullscreen(true)}
+                  className="btn-secondary px-6 py-3 flex items-center gap-2"
+                >
+                  <Maximize2 size={18} />
+                  Fullscreen
+                </button>
               </>
             )}
             {!running && elapsedSec>0 && (
               <>
                 <button onClick={resume} className="btn-secondary px-6 py-3">Resume</button>
                 <button onClick={cancel} className="btn-secondary px-6 py-3">Cancel</button>
+                <button 
+                  onClick={() => setIsFullscreen(true)}
+                  className="btn-secondary px-6 py-3 flex items-center gap-2"
+                >
+                  <Maximize2 size={18} />
+                  Fullscreen
+                </button>
               </>
             )}
           </div>
@@ -469,6 +488,18 @@ export default function Focus() {
           </div>
         </div>
       )}
+
+      {/* Fullscreen Focus */}
+      <FullscreenFocus
+        isOpen={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+        statId={statId}
+        elapsedSec={elapsedSec}
+        isRunning={running}
+        onPause={pause}
+        onResume={resume}
+        onFinish={finish}
+      />
 
       {isLoading && (
         <div className="text-center p-6 card">
