@@ -298,33 +298,63 @@ export default function Home() {
   return (
     <div className="space-y-6">
       {/* Today at a glance */}
-      <section className="grid grid-cols-2 gap-4">
-        <Card className="p-6">
-          <p className="text-sm text-muted mb-2">Focus (min)</p>
+      <section className="grid grid-cols-3 gap-3">
+        <Card className="p-4">
+          <p className="text-xs text-muted mb-1">Focus (min)</p>
           <div className="flex items-end justify-between">
-            <h3 className="text-3xl font-bold theme-text-3xl">{formatNumber(focusToday)}</h3>
+            <h3 className="text-2xl font-bold theme-text-2xl">{formatNumber(focusToday)}</h3>
             <span className="text-xs text-muted">today</span>
           </div>
         </Card>
 
-        <Card className="p-6">
-          <p className="text-sm text-muted mb-2">Habits done</p>
+        <Card className="p-4">
+          <p className="text-xs text-muted mb-1">Habits done</p>
           <div className="flex items-end justify-between">
-            <h3 className="text-3xl font-bold theme-text-3xl">{habitsDone}/{todaysHabits.length}</h3>
+            <h3 className="text-2xl font-bold theme-text-2xl">{habitsDone}/{todaysHabits.length}</h3>
             <span className="text-xs text-muted">today</span>
           </div>
         </Card>
 
-        <Card className="p-6 col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-base font-semibold theme-text-lg">This week (focus)</p>
-            <span className="text-xs text-muted">last 7 days</span>
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-muted">This week</p>
+            <span className="text-xs text-muted">7d</span>
           </div>
           <div className="theme-text">
             <Sparkline data={spark.map(x => ({ d: x.d, v: x.v }))} />
           </div>
         </Card>
       </section>
+
+      {/* Amount Totals */}
+      {amountStatsByUnit.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-lg font-semibold theme-text-lg">Amount Totals</h4>
+            <span className="text-xs text-muted">
+              {getPeriodDescription(statsPeriod)}
+            </span>
+          </div>
+          <div className="space-y-4">
+            {amountStatsByUnit.map(({ unit, stats, total }) => (
+              <Card key={unit} className="p-4 w-full">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted mb-1">Total {unit}</p>
+                    <h3 className="text-xl font-bold theme-text-xl">
+                      {formatNumber(total, preferences.amount_format)}{unit !== 'no-unit' ? ` ${unit}` : ''}
+                    </h3>
+                    <p className="text-xs text-muted">
+                      {stats.length} stat{stats.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <OverlappedIcons stats={stats} size="md" />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Stats */}
       {stats.length > 0 && (
@@ -379,36 +409,6 @@ export default function Home() {
                 </Card>
               )
             })}
-          </div>
-        </section>
-      )}
-
-      {/* Amount Totals */}
-      {amountStatsByUnit.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold theme-text-lg">Amount Totals</h4>
-            <span className="text-xs text-muted">
-              {getPeriodDescription(statsPeriod)}
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {amountStatsByUnit.map(({ unit, stats, total }) => (
-              <Card key={unit} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted mb-1">Total {unit}</p>
-                    <h3 className="text-xl font-bold theme-text-xl">
-                      {formatNumber(total, preferences.amount_format)}{unit !== 'no-unit' ? ` ${unit}` : ''}
-                    </h3>
-                    <p className="text-xs text-muted">
-                      {stats.length} stat{stats.length !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                  <OverlappedIcons stats={stats} size="md" />
-                </div>
-              </Card>
-            ))}
           </div>
         </section>
       )}
@@ -484,6 +484,9 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* Bottom padding for better scrolling */}
+      <div className="pb-20" />
 
       <FAB onClick={() => setOpenQL(true)} />
       <QuickLogModal open={openQL} onClose={() => setOpenQL(false)} user={user} onSave={refreshData} />

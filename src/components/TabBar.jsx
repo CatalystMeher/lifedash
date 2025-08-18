@@ -23,7 +23,7 @@ export default function TabBar() {
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t theme-border theme-nav-bg shadow-sm">
       <div className="flex justify-around items-center px-2 py-2">
         {tabs.map((tab) => {
-          const active = pathname === tab.to
+          const active = pathname === tab.to || pathname.startsWith(`${tab.to}/`)
           const IconComponent = tab.Icon
           return (
             <NavLink
@@ -47,7 +47,7 @@ export default function TabBar() {
               </div>
               <span
                 className={`text-xs font-medium transition-colors duration-200 text-center truncate w-full ${
-                  active ? 'accent-text font-semibold' : 'theme-text-secondary'
+                  active ? 'theme-text font-semibold' : 'theme-text-secondary'
                 }`}
               >
                 {tab.label}
