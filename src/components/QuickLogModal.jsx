@@ -122,6 +122,30 @@ export default function QuickLogModal({ open, onClose, user, onSave }) {
               </div>
             )}
 
+            {s.type === 'amount' && (
+              <div className="flex items-center gap-3 flex-col sm:flex-row">
+                <input 
+                  type="number" 
+                  inputMode="decimal"
+                  className="flex-1 input w-full"
+                  placeholder={`Enter ${s.unit || 'amount'}`}
+                  value={vals[s.id] ?? ''}
+                  onChange={e => setValue(s.id, e.target.value)}
+                />
+                <div className="flex gap-2 flex-wrap">
+                  {[1, 5, 10, 25].map(n => (
+                    <button 
+                      key={n} 
+                      onClick={() => setValue(s.id, Number(vals[s.id]||0)+n)}
+                      className="px-3 py-2 text-sm rounded-lg theme-border hover:theme-bg-secondary transition-colors"
+                    >
+                      +{n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {s.type === 'text' && (
               <textarea 
                 rows={3} 
