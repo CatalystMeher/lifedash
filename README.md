@@ -8,6 +8,7 @@ A modern, mobile-first life tracking app built with React and Supabase.
 - **Amount Totals**: Automatically sum up amount-type stats with the same unit and display as totals
 - **Amount Formatting**: Choose between US (K, M, B) and Indian (K, L, Cr) number formatting
 - **Habit Tracking**: Create habits with custom schedules and track daily completion
+- **Todo Management**: Apple Reminders-style todo system with drag-and-drop functionality
 - **Focus Timer**: Pomodoro-style timer with automatic logging
 - **Analytics**: Visualize your data with charts and insights
 - **Quick Log**: Fast entry for multiple stats at once
@@ -33,6 +34,7 @@ A modern, mobile-first life tracking app built with React and Supabase.
 5. Run the migrations in your Supabase SQL editor:
    - Copy and run the SQL from `migration_add_amount_type.sql` to add the 'amount' type
    - Copy and run the SQL from `migration_add_user_preferences.sql` to add user preferences
+   - Copy and run the SQL from `migration_add_todos.sql` to add the todos table
 6. Run the development server: `npm run dev`
 
 ## Database Schema
@@ -105,6 +107,22 @@ CREATE TABLE user_preferences (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
   amount_format VARCHAR(10) DEFAULT 'US' CHECK (amount_format IN ('US', 'IN')),
+  inserted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### todos
+```sql
+CREATE TABLE todos (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  completed BOOLEAN DEFAULT false,
+  due_date DATE,
+  priority INTEGER DEFAULT 0 CHECK (priority IN (0, 1, 2)), -- 0=normal, 1=high, 2=urgent
+  notes TEXT,
+  order_index INTEGER DEFAULT 0,
   inserted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

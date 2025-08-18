@@ -5,6 +5,7 @@ import Sparkline from '../components/Sparkline'
 import FAB from '../components/FAB'
 import QuickLogModal from '../components/QuickLogModal'
 import InstallPrompt from '../components/InstallPrompt'
+import TodoListCompact from '../components/TodoListCompact'
 import useUser from '../hooks/useUser'
 import { supabase } from '../lib/supabase'
 import { lastNDays, todayKey, daysBetween } from '../lib/dateRange'
@@ -424,66 +425,79 @@ export default function Home() {
         </section>
       )}
 
-      {/* Today's Habits */}
-      {todaysHabits.length > 0 && (
-        <section>
-          <h4 className="text-lg font-semibold theme-text-lg mb-4">Today's Habits</h4>
-          <div className="space-y-3">
-            {todaysHabits.map(habit => {
-              const done = doneSet.has(habit.id)
-              return (
-                <Card key={habit.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => toggleHabit(habit)}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                          done 
-                            ? 'accent-bg accent-text' 
-                            : 'theme-bg-secondary theme-text-secondary'
-                        }`}
-                        title="Tap to toggle"
-                      >
-                        {done ? (
-                          <Check className="w-5 h-5" />
-                        ) : (
-                          <X className="w-5 h-5" />
-                        )}
-                      </button>
-                      <div>
-                        <p className="font-medium theme-text">{habit.name}</p>
-                        <p className="text-sm text-muted">Today: {done ? 'Done' : 'Not yet'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              )
-            })}
+      {/* Todos and Habits Section */}
+      <section>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Todos - Show first on mobile, left side on desktop */}
+          <div className="order-1 lg:order-1">
+            <TodoListCompact user={user} />
           </div>
-        </section>
-      )}
 
-      {todaysHabits.length === 0 && habits.length > 0 && (
-        <section>
-          <h4 className="text-lg font-semibold theme-text-lg mb-4">Today's Habits</h4>
-          <div className="text-center p-8 card">
-            <div className="text-4xl mb-4">✅</div>
-            <div className="text-lg font-semibold theme-text-lg mb-2">No habits scheduled today</div>
-            <div className="text-muted">You have {habits.length} habit{habits.length !== 1 ? 's' : ''} but none are scheduled for today.</div>
-          </div>
-        </section>
-      )}
+          {/* Habits - Show second on mobile, right side on desktop */}
+          <div className="order-2 lg:order-2">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                  <Check className="w-3 h-3 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold theme-text-lg">Today's Habits</h3>
+                <span className="text-sm text-gray-500">({habitsDone}/{todaysHabits.length})</span>
+              </div>
 
-      {habits.length === 0 && (
-        <section>
-          <h4 className="text-lg font-semibold theme-text-lg mb-4">Today's Habits</h4>
-          <div className="text-center p-8 card">
-            <div className="text-4xl mb-4">✅</div>
-            <div className="text-lg font-semibold theme-text-lg mb-2">No habits yet</div>
-            <div className="text-muted">Create your first habit to start building good routines!</div>
+              {todaysHabits.length > 0 && (
+                <div className="space-y-3">
+                  {todaysHabits.map(habit => {
+                    const done = doneSet.has(habit.id)
+                    return (
+                      <Card key={habit.id} className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => toggleHabit(habit)}
+                              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                                done 
+                                  ? 'accent-bg accent-text' 
+                                  : 'theme-bg-secondary theme-text-secondary'
+                              }`}
+                              title="Tap to toggle"
+                            >
+                              {done ? (
+                                <Check className="w-5 h-5" />
+                              ) : (
+                                <X className="w-5 h-5" />
+                              )}
+                            </button>
+                            <div>
+                              <p className="font-medium theme-text">{habit.name}</p>
+                              <p className="text-sm text-muted">Today: {done ? 'Done' : 'Not yet'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    )
+                  })}
+                </div>
+              )}
+
+              {todaysHabits.length === 0 && habits.length > 0 && (
+                <div className="text-center p-8 card">
+                  <div className="text-4xl mb-4">✅</div>
+                  <div className="text-lg font-semibold theme-text-lg mb-2">No habits scheduled today</div>
+                  <div className="text-muted">You have {habits.length} habit{habits.length !== 1 ? 's' : ''} but none are scheduled for today.</div>
+                </div>
+              )}
+
+              {habits.length === 0 && (
+                <div className="text-center p-8 card">
+                  <div className="text-4xl mb-4">✅</div>
+                  <div className="text-lg font-semibold theme-text-lg mb-2">No habits yet</div>
+                  <div className="text-muted">Create your first habit to start building good routines!</div>
+                </div>
+              )}
+            </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* Bottom padding for better scrolling */}
       <div className="pb-20" />

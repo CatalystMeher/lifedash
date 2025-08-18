@@ -4,6 +4,7 @@ import MainLayout from './layouts/MainLayout'
 import Home from './pages/Home'
 import Stats from './pages/Stats'
 import Habits from './pages/Habits'
+import Todos from './pages/Todos'
 import Focus from './pages/Focus'
 import Analytics from './pages/Analytics'
 import Settings from './pages/Settings'
@@ -24,6 +25,7 @@ export default function App() {
               <Route path="/home" element={<Home />} />
               <Route path="/stats" element={<Stats />} />
               <Route path="/habits" element={<Habits />} />
+              <Route path="/todos" element={<Todos />} />
               <Route path="/focus" element={<Focus />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/settings" element={<Settings />} />
