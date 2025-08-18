@@ -28,7 +28,7 @@ export default function QuickLogModal({ open, onClose, user, onSave }) {
     const rows = []
     for (const s of stats) {
       const v = vals[s.id]
-      if (s.type === 'number' || s.type === 'duration') {
+      if (s.type === 'number' || s.type === 'duration' || s.type === 'amount') {
         const num = Number(v)
         if (!isNaN(num) && num !== 0) {
           rows.push({ user_id: user.id, stat_id: s.id, day: today, value: num })

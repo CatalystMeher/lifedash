@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Card from '../components/Card'
 import Sparkline from '../components/Sparkline'
@@ -13,15 +13,12 @@ import dayjs from 'dayjs'
 import { Check, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { triggerConfetti } from '../lib/confetti'
+import OverlappedIcons from '../components/OverlappedIcons'
+import { useUserPreferences, formatAmount } from '../hooks/useUserPreferences'
 
-// Number formatting function
-function formatNumber(num) {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
-  } else if (num >= 1000) {
-    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
-  }
-  return num.toString()
+// Number formatting function - now uses user preferences
+function formatNumber(num, amountFormat = 'US') {
+  return formatAmount(num, amountFormat)
 }
 
 async function fetchStats() {
@@ -66,12 +63,42 @@ async function fetchTodayCheckins(today, userId) {
 
 export default function Home() {
   const { user, loading } = useUser()
+  const { preferences } = useUserPreferences()
   const queryClient = useQueryClient()
   const [openQL, setOpenQL] = useState(false)
-  const [statsPeriod, setStatsPeriod] = useState('today') // 'today', '7d', '30d', 'lifetime'
+  
+  // Get the last selected period from localStorage, default to 'today'
+  const [statsPeriod, setStatsPeriod] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lifedash-stats-period')
+      return saved && ['today', '7d', '30d', 'lifetime'].includes(saved) ? saved : 'today'
+    } catch (error) {
+      console.warn('Failed to load stats period from localStorage:', error)
+      return 'today'
+    }
+  })
 
   const { from, to } = lastNDays(7)
   const tkey = todayKey()
+
+  // Handle period change and save to localStorage
+  const handlePeriodChange = (period) => {
+    setStatsPeriod(period)
+    try {
+      localStorage.setItem('lifedash-stats-period', period)
+    } catch (error) {
+      console.warn('Failed to save stats period to localStorage:', error)
+    }
+  }
+
+  // Save the current period to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('lifedash-stats-period', statsPeriod)
+    } catch (error) {
+      console.warn('Failed to save stats period to localStorage:', error)
+    }
+  }, [statsPeriod])
 
   // all stats
   const { data: stats = [], error: statsError } = useQuery({
@@ -132,6 +159,29 @@ export default function Home() {
     }
     return values
   }, [periodEntries, stats])
+
+  // Group amount stats by unit and compute totals
+  const amountStatsByUnit = useMemo(() => {
+    const amountStats = stats.filter(s => s.type === 'amount')
+    const grouped = new Map()
+    
+    for (const stat of amountStats) {
+      const statUnit = stat.unit || 'no-unit'
+      if (!grouped.has(statUnit)) {
+        grouped.set(statUnit, [])
+      }
+      grouped.get(statUnit).push(stat)
+    }
+    
+    // Convert to array and filter out groups with only one stat
+    return Array.from(grouped.entries())
+      .filter(([, stats]) => stats.length > 1)
+      .map(([unit, stats]) => ({
+        unit,
+        stats,
+        total: stats.reduce((sum, stat) => sum + (periodValues.get(stat.id) || 0), 0)
+      }))
+  }, [stats, periodValues])
 
   // compute focus (today + 7-day spark) - only duration stats
   const durationStats = useMemo(() => stats.filter(s => s.type === 'duration'), [stats])
@@ -235,16 +285,6 @@ export default function Home() {
     )
   }
 
-  const getPeriodLabel = (period) => {
-    switch (period) {
-      case 'today': return 'Today'
-      case '7d': return '7d'
-      case '30d': return '30d'
-      case 'lifetime': return 'All'
-      default: return period
-    }
-  }
-
   const getPeriodDescription = (period) => {
     switch (period) {
       case 'today': return 'today'
@@ -300,7 +340,7 @@ export default function Home() {
               ].map(period => (
                 <button
                   key={period.key}
-                  onClick={() => setStatsPeriod(period.key)}
+                  onClick={() => handlePeriodChange(period.key)}
                   className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${
                     statsPeriod === period.key
                       ? 'accent-bg accent-text'
@@ -323,7 +363,7 @@ export default function Home() {
                     <div>
                       <p className="text-sm text-muted mb-1">{stat.name}</p>
                       <h3 className="text-xl font-bold theme-text-xl">
-                        {formatNumber(periodValue)}{unit ? ` ${unit}` : ''}
+                        {formatNumber(periodValue, preferences.amount_format)}{unit ? ` ${unit}` : ''}
                       </h3>
                       <p className="text-xs text-muted">
                         {getPeriodDescription(statsPeriod)}
@@ -339,6 +379,36 @@ export default function Home() {
                 </Card>
               )
             })}
+          </div>
+        </section>
+      )}
+
+      {/* Amount Totals */}
+      {amountStatsByUnit.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-lg font-semibold theme-text-lg">Amount Totals</h4>
+            <span className="text-xs text-muted">
+              {getPeriodDescription(statsPeriod)}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {amountStatsByUnit.map(({ unit, stats, total }) => (
+              <Card key={unit} className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted mb-1">Total {unit}</p>
+                    <h3 className="text-xl font-bold theme-text-xl">
+                      {formatNumber(total, preferences.amount_format)}{unit !== 'no-unit' ? ` ${unit}` : ''}
+                    </h3>
+                    <p className="text-xs text-muted">
+                      {stats.length} stat{stats.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <OverlappedIcons stats={stats} size="md" />
+                </div>
+              </Card>
+            ))}
           </div>
         </section>
       )}

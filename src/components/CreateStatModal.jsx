@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import { Settings } from 'lucide-react'
 
-const TYPES = ['number','duration','text']
+const TYPES = ['number','duration','text','amount']
 
 export default function CreateStatModal({ open, onClose, user, onCreated, editingStat = null }) {
   const [form, setForm] = useState({

@@ -15,7 +15,9 @@ export default function FullscreenFocus({
   isRunning, 
   onPause, 
   onResume, 
-  onFinish 
+  onFinish,
+  countdownMode = false,
+  modeMin = 25
 }) {
   const [isLandscape, setIsLandscape] = useState(false)
   
@@ -58,6 +60,11 @@ export default function FullscreenFocus({
   const mm = String(Math.floor(elapsedSec/60)).padStart(2,'0')
   const ss = String(elapsedSec%60).padStart(2,'0')
   
+  // Calculate remaining time for countdown display
+  const remainingTime = countdownMode ? elapsedSec : null
+  const remainingMM = remainingTime ? String(Math.floor(remainingTime/60)).padStart(2,'0') : mm
+  const remainingSS = remainingTime ? String(remainingTime%60).padStart(2,'0') : ss
+  
   return (
     <div className="fixed inset-0 z-50 bg-black animate-fade-in">
       {/* Close button */}
@@ -90,9 +97,19 @@ export default function FullscreenFocus({
             
             {/* Timer */}
             <div className="text-white font-light tracking-wider">
-              <div className="text-8xl sm:text-9xl lg:text-[12rem] leading-none">
-                {mm}:{ss}
+              <div className={`text-8xl sm:text-9xl lg:text-[12rem] leading-none ${
+                countdownMode && elapsedSec <= 60 && elapsedSec > 0 ? 'text-red-400 animate-pulse' : ''
+              }`}>
+                {remainingMM}:{remainingSS}
               </div>
+              {countdownMode && (
+                <div className="text-white/60 text-lg mt-4">
+                  Countdown: {Math.floor(modeMin)} minutes
+                  {elapsedSec <= 60 && elapsedSec > 0 && (
+                    <span className="text-red-400 ml-2">• Less than 1 minute remaining!</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

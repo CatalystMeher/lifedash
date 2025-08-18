@@ -3,11 +3,13 @@ import { supabase } from '../lib/supabase'
 import useUser from '../hooks/useUser'
 import toast from 'react-hot-toast'
 import { useTheme } from '../contexts/ThemeContext'
-import { Palette, Sun, Moon, Droplets, Github, Zap, Code, Eye } from 'lucide-react'
+import { useUserPreferences } from '../hooks/useUserPreferences'
+import { Palette, Sun, Moon, Droplets, Github, Zap, Code, Eye, DollarSign, IndianRupee } from 'lucide-react'
 
 export default function Settings() {
   const { user } = useUser()
   const { currentTheme, changeTheme, themes } = useTheme()
+  const { preferences, updatePreferences, isUpdating } = useUserPreferences()
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [resetText, setResetText] = useState('')
   const [isResetting, setIsResetting] = useState(false)
@@ -136,6 +138,92 @@ export default function Settings() {
               </button>
             )
           })}
+        </div>
+      </div>
+      
+      {/* Amount Formatting */}
+      <div className="p-6 card">
+        <div className="flex items-center gap-2 mb-4">
+          <DollarSign className="w-5 h-5 theme-text-secondary" />
+          <h3 className="theme-text-lg">Amount Formatting</h3>
+        </div>
+        <div className="space-y-3">
+          <div className="text-sm text-muted mb-4">
+            Choose how large numbers are displayed in amount-type stats
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={() => updatePreferences({ amount_format: 'US' })}
+              disabled={isUpdating}
+              className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                preferences.amount_format === 'US'
+                  ? 'accent-border accent-bg'
+                  : 'theme-border hover:theme-bg-secondary'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                  <DollarSign className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className={`font-medium ${
+                    preferences.amount_format === 'US' ? 'accent-text' : 'theme-text'
+                  }`}>
+                    US Format
+                  </div>
+                  <div className={`text-sm ${
+                    preferences.amount_format === 'US' ? 'accent-text opacity-80' : 'theme-text-secondary'
+                  }`}>
+                    1K, 1M, 1B
+                  </div>
+                </div>
+                {preferences.amount_format === 'US' && (
+                  <div className="ml-auto flex-shrink-0">
+                    <div className="w-2 h-2 accent-bg rounded-full"></div>
+                  </div>
+                )}
+              </div>
+            </button>
+            
+            <button
+              onClick={() => updatePreferences({ amount_format: 'IN' })}
+              disabled={isUpdating}
+              className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                preferences.amount_format === 'IN'
+                  ? 'accent-border accent-bg'
+                  : 'theme-border hover:theme-bg-secondary'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
+                  <IndianRupee className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className={`font-medium ${
+                    preferences.amount_format === 'IN' ? 'accent-text' : 'theme-text'
+                  }`}>
+                    Indian Format
+                  </div>
+                  <div className={`text-sm ${
+                    preferences.amount_format === 'IN' ? 'accent-text opacity-80' : 'theme-text-secondary'
+                  }`}>
+                    1K, 1L, 1Cr
+                  </div>
+                </div>
+                {preferences.amount_format === 'IN' && (
+                  <div className="ml-auto flex-shrink-0">
+                    <div className="w-2 h-2 accent-bg rounded-full"></div>
+                  </div>
+                )}
+              </div>
+            </button>
+          </div>
+          
+          <div className="text-xs text-muted mt-3">
+            <strong>US:</strong> 1K = 1,000, 1M = 1,000,000, 1B = 1,000,000,000<br />
+            <strong>Indian:</strong> 1K = 1,000, 1L = 1,00,000, 1Cr = 1,00,00,000
+          </div>
         </div>
       </div>
       

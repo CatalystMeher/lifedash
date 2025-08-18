@@ -4,8 +4,37 @@ import toast from 'react-hot-toast'
 import dayjs from 'dayjs'
 import { supabase } from '../lib/supabase'
 import useUser from '../hooks/useUser'
-import { Edit, Trash2, Play, Maximize2 } from 'lucide-react'
+import { Edit, Trash2, Play, Maximize2, Bell } from 'lucide-react'
 import FullscreenFocus from '../components/FullscreenFocus'
+
+// Audio for timer completion
+const timerAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT')
+
+// Notification and sound functions
+function requestNotificationPermission() {
+  if ('Notification' in window) {
+    Notification.requestPermission()
+  }
+}
+
+function playTimerSound() {
+  try {
+    timerAudio.play()
+  } catch (error) {
+    console.warn('Failed to play timer sound:', error)
+  }
+}
+
+function showTimerNotification(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body,
+      icon: '/logo.png',
+      badge: '/logo.png',
+      tag: 'focus-timer'
+    })
+  }
+}
 
 function fetchDurationStats() {
   return supabase.from('stats').select('*').eq('type','duration').order('inserted_at',{ascending:false})
@@ -76,11 +105,13 @@ export default function Focus() {
   const [statId, setStatId] = useState(null)
   const [modeMin, setModeMin] = useState(25) // preset minutes
   const [running, setRunning] = useState(false)
+  const [countdownMode, setCountdownMode] = useState(false) // true for countdown, false for stopwatch
   const startRef = useRef(null)  // Date
   const [elapsedSec, setElapsedSec] = useState(0)
   const tickRef = useRef(null)
   const pausedRef = useRef(0)    // total paused seconds
   const lastPauseStart = useRef(null)
+  const [targetTime, setTargetTime] = useState(0) // target time in seconds for countdown
   
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -97,6 +128,13 @@ export default function Focus() {
   useEffect(()=>{
     if (!statId && list.length) setStatId(list[0].id)
   }, [list, statId])
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      // Don't auto-request, let user choose when they want alerts
+    }
+  }, [])
 
   // Load persistent timer state on mount
   useEffect(() => {
@@ -150,14 +188,38 @@ export default function Focus() {
     if (!statId) return toast.error('Pick a duration stat')
     const targetMin = Number(min ?? modeMin)
     if (isNaN(targetMin) || targetMin <= 0) return toast.error('Invalid minutes')
+    
     startRef.current = new Date()
     pausedRef.current = 0
     lastPauseStart.current = null
-    setElapsedSec(0)
+    
+    if (countdownMode) {
+      // Countdown mode: start from target time and count down
+      const targetSeconds = targetMin * 60
+      setTargetTime(targetSeconds)
+      setElapsedSec(targetSeconds)
+      tickRef.current = setInterval(() => {
+        const newElapsed = Math.max(0, targetSeconds - Math.floor((Date.now() - startRef.current.getTime() - pausedRef.current*1000)/1000))
+        setElapsedSec(newElapsed)
+        
+        // Check if countdown reached zero
+        if (newElapsed <= 0) {
+          clearInterval(tickRef.current)
+          setRunning(false)
+          playTimerSound()
+          showTimerNotification('Focus Timer Complete!', `Your ${targetMin}-minute focus session is complete.`)
+          toast.success(`Focus session complete! (${targetMin} minutes)`)
+        }
+      }, 1000)
+    } else {
+      // Stopwatch mode: start from 0 and count up
+      setElapsedSec(0)
+      tickRef.current = setInterval(() => {
+        setElapsedSec(Math.floor((Date.now() - startRef.current.getTime() - pausedRef.current*1000)/1000))
+      }, 1000)
+    }
+    
     setRunning(true)
-    tickRef.current = setInterval(()=>{
-      setElapsedSec(Math.floor((Date.now() - startRef.current.getTime() - pausedRef.current*1000)/1000))
-    }, 1000)
   }
 
   function pause() {
@@ -174,9 +236,28 @@ export default function Focus() {
     }
     lastPauseStart.current = null
     setRunning(true)
-    tickRef.current = setInterval(()=>{
-      setElapsedSec(Math.floor((Date.now() - startRef.current.getTime() - pausedRef.current*1000)/1000))
-    }, 1000)
+    
+    if (countdownMode) {
+      // Resume countdown
+      tickRef.current = setInterval(() => {
+        const newElapsed = Math.max(0, targetTime - Math.floor((Date.now() - startRef.current.getTime() - pausedRef.current*1000)/1000))
+        setElapsedSec(newElapsed)
+        
+        // Check if countdown reached zero
+        if (newElapsed <= 0) {
+          clearInterval(tickRef.current)
+          setRunning(false)
+          playTimerSound()
+          showTimerNotification('Focus Timer Complete!', `Your ${Math.floor(targetTime/60)}-minute focus session is complete.`)
+          toast.success(`Focus session complete! (${Math.floor(targetTime/60)} minutes)`)
+        }
+      }, 1000)
+    } else {
+      // Resume stopwatch
+      tickRef.current = setInterval(() => {
+        setElapsedSec(Math.floor((Date.now() - startRef.current.getTime() - pausedRef.current*1000)/1000))
+      }, 1000)
+    }
   }
 
   function cancel() {
@@ -274,6 +355,11 @@ export default function Focus() {
 
   const mm = String(Math.floor(elapsedSec/60)).padStart(2,'0')
   const ss = String(elapsedSec%60).padStart(2,'0')
+  
+  // Calculate remaining time for countdown display
+  const remainingTime = countdownMode ? elapsedSec : null
+  const remainingMM = remainingTime ? String(Math.floor(remainingTime/60)).padStart(2,'0') : mm
+  const remainingSS = remainingTime ? String(remainingTime%60).padStart(2,'0') : ss
 
   // Show loading state while user is being authenticated
   if (loading) {
@@ -328,13 +414,66 @@ export default function Focus() {
           </div>
         </div>
 
+        {/* Timer Mode Selection */}
+        <div className="mb-6">
+          <label className="text-sm text-muted mb-2 block">Timer Mode</label>
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => setCountdownMode(false)}
+              className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all duration-200 ${
+                !countdownMode
+                  ? 'accent-bg accent-text border-current' 
+                  : 'theme-button-secondary'
+              }`}
+            >
+              Stopwatch
+            </button>
+            <button
+              onClick={() => setCountdownMode(true)}
+              className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all duration-200 ${
+                countdownMode
+                  ? 'accent-bg accent-text border-current' 
+                  : 'theme-button-secondary'
+              }`}
+            >
+              Countdown
+            </button>
+          </div>
+        </div>
+
         {/* Timer */}
         <div className="flex flex-col items-center">
-          <div className="text-6xl font-bold tabular-nums theme-text-4xl mb-6">{mm}:{ss}</div>
-          <div className="flex gap-3 flex-wrap justify-center">
-            {!running && elapsedSec===0 && (
-              <button onClick={()=>startTimer()} className="btn-primary px-8 py-3 text-lg">Start</button>
-            )}
+          <div className={`text-6xl font-bold tabular-nums theme-text-4xl mb-6 ${
+            countdownMode && elapsedSec <= 60 && elapsedSec > 0 ? 'text-red-500 animate-pulse' : ''
+          }`}>
+            {remainingMM}:{remainingSS}
+          </div>
+          {countdownMode && (
+            <div className="text-sm text-muted mb-4">
+              Countdown: {Math.floor(modeMin)} minutes
+              {elapsedSec <= 60 && elapsedSec > 0 && (
+                <span className="text-red-500 ml-2">• Less than 1 minute remaining!</span>
+              )}
+            </div>
+          )}
+                      <div className="flex gap-3 flex-wrap justify-center">
+              {!running && elapsedSec===0 && (
+                <>
+                  <button onClick={()=>startTimer()} className="btn-primary px-8 py-3 text-lg">Start</button>
+                  {countdownMode && (
+                    <button 
+                      onClick={() => {
+                        requestNotificationPermission()
+                        startTimer()
+                      }} 
+                      className="btn-secondary px-6 py-3 flex items-center gap-2"
+                    >
+                      <Bell size={18} />
+                      Start with Alerts
+                    </button>
+                  )}
+                </>
+              )}
             {running && (
               <>
                 <button onClick={pause} className="btn-secondary px-6 py-3">Pause</button>
@@ -499,6 +638,8 @@ export default function Focus() {
         onPause={pause}
         onResume={resume}
         onFinish={finish}
+        countdownMode={countdownMode}
+        modeMin={modeMin}
       />
 
       {isLoading && (

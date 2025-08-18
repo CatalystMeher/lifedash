@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase'
 import { lastNDays } from '../lib/dateRange'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import useUser from '../hooks/useUser'
+import { useUserPreferences, formatAmount } from '../hooks/useUserPreferences'
 
 async function fetchStat(id) {
   const { data, error } = await supabase.from('stats').select('*').eq('id', id).single()
@@ -38,6 +39,7 @@ async function fetchLifetimeEntries(statId) {
 export default function StatDetail() {
   const { id } = useParams()
   const { user, loading } = useUser()
+  const { preferences } = useUserPreferences()
   const [range, setRange] = useState(30)
   const [lifetimePeriod, setLifetimePeriod] = useState('lifetime') // '7d', '30d', 'lifetime'
   const [numValue, setNumValue] = useState('')
@@ -170,7 +172,7 @@ export default function StatDetail() {
         </div>
         <div className="text-center">
           <h3 className="text-4xl font-bold theme-text-4xl">
-            {lifetimeTotal}{unit ? ` ${unit}` : ''}
+            {formatAmount(lifetimeTotal, preferences.amount_format)}{unit ? ` ${unit}` : ''}
           </h3>
         </div>
       </div>
@@ -251,7 +253,43 @@ export default function StatDetail() {
         </div>
       )}
 
-
+      {stat?.type === 'amount' && (
+        <div className="p-6 card">
+          <label className="text-sm text-muted mb-3 block">Add amount ({unit || 'value'})</label>
+          <div className="flex items-center gap-3 flex-col sm:flex-row">
+            <input 
+              type="number" 
+              inputMode="decimal" 
+              className="flex-1 input w-full" 
+              placeholder={`Enter ${unit || 'amount'}`}
+              value={numValue}
+              onChange={(e) => setNumValue(e.target.value)}
+            />
+            <div className="flex gap-2 flex-wrap">
+              {[1,5,10,25].map(n=>(
+                <button 
+                  key={n} 
+                  onClick={()=>setNumValue(String((Number(numValue||0))+n))} 
+                  className="px-3 py-2 text-sm rounded-lg border theme-border hover:theme-bg-secondary transition-colors"
+                >
+                  +{n}
+                </button>
+              ))}
+            </div>
+            <button 
+              onClick={()=>{
+                const v = Number(numValue||0)
+                if (isNaN(v)) return toast.error('Enter a number')
+                logToday({ value: v })
+                setNumValue('')
+              }} 
+              className="btn-primary w-full sm:w-auto"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      )}
 
       {stat?.type === 'text' && (
         <div className="p-6 card">
