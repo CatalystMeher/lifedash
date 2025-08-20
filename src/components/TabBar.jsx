@@ -10,12 +10,12 @@ import {
 } from 'lucide-react'
 
 const tabs = [
-  { to: '/home', label: 'Home', Icon: HomeIcon },
-  { to: '/stats', label: 'Stats', Icon: LineChart },
-  { to: '/habits', label: 'Habits', Icon: CheckSquare },
-  { to: '/todos', label: 'Todos', Icon: ListTodo },
-  { to: '/focus', label: 'Focus', Icon: Timer },
-  { to: '/analytics', label: 'Insights', Icon: BarChart3 },
+  { to: '/home', label: 'Home', Icon: HomeIcon, className: 'tour-home-tab' },
+  { to: '/stats', label: 'Stats', Icon: LineChart, className: 'tour-stats-tab' },
+  { to: '/habits', label: 'Habits', Icon: CheckSquare, className: 'tour-habits-tab' },
+  { to: '/todos', label: 'Todos', Icon: ListTodo, className: 'tour-todos-tab' },
+  { to: '/focus', label: 'Focus', Icon: Timer, className: 'tour-focus-tab' },
+  { to: '/analytics', label: 'Insights', Icon: BarChart3, className: 'tour-analytics-tab' },
 ]
 
 export default function TabBar() {
@@ -30,7 +30,7 @@ export default function TabBar() {
             <NavLink
               key={tab.to}
               to={tab.to}
-              className="flex flex-col items-center justify-center py-2 px-1 min-w-0 flex-1 transition-all duration-200"
+              className={`flex flex-col items-center justify-center py-2 px-1 min-w-0 flex-1 transition-all duration-200 ${tab.className || ''}`}
             >
               <div
                 className={`flex items-center justify-center w-10 h-10 rounded-2xl transition-all duration-200 mb-1 ${

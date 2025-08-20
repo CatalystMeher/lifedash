@@ -12,13 +12,13 @@ import {
 import logo from '../assets/logo.png'
 
 const tabs = [
-  { to: '/home', label: 'Home', Icon: HomeIcon },
-  { to: '/stats', label: 'Stats', Icon: LineChart },
-  { to: '/habits', label: 'Habits', Icon: CheckSquare },
-  { to: '/todos', label: 'Todos', Icon: ListTodo },
-  { to: '/focus', label: 'Focus', Icon: Timer },
-  { to: '/analytics', label: 'Insights', Icon: BarChart3 },
-  { to: '/settings', label: 'Settings', Icon: Settings },
+  { to: '/home', label: 'Home', Icon: HomeIcon, className: 'tour-home-nav' },
+  { to: '/stats', label: 'Stats', Icon: LineChart, className: 'tour-stats-nav' },
+  { to: '/habits', label: 'Habits', Icon: CheckSquare, className: 'tour-habits-nav' },
+  { to: '/todos', label: 'Todos', Icon: ListTodo, className: 'tour-todos-nav' },
+  { to: '/focus', label: 'Focus', Icon: Timer, className: 'tour-focus-nav' },
+  { to: '/analytics', label: 'Insights', Icon: BarChart3, className: 'tour-analytics-nav' },
+  { to: '/settings', label: 'Settings', Icon: Settings, className: 'tour-settings-nav' },
 ]
 
 export default function SideNav({ today }) {
@@ -49,7 +49,7 @@ export default function SideNav({ today }) {
             <NavLink
               key={tab.to}
               to={tab.to}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${tab.className} ${
                 active
                   ? 'accent-bg accent-text'
                   : 'theme-text-secondary hover:theme-bg-secondary'

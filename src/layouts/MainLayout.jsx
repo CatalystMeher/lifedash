@@ -53,7 +53,7 @@ export default function MainLayout() {
               </div>
               <NavLink
                 to="/settings"
-                className={`flex items-center justify-center w-10 h-10 rounded-2xl transition-all duration-200 ${
+                className={`flex items-center justify-center w-10 h-10 rounded-2xl transition-all duration-200 tour-settings ${
                   isSettingsActive
                     ? 'accent-bg scale-110'
                     : 'theme-text-secondary hover:theme-bg-secondary'

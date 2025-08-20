@@ -4,12 +4,14 @@ import useUser from '../hooks/useUser'
 import toast from 'react-hot-toast'
 import { useTheme } from '../contexts/ThemeContext'
 import { useUserPreferences } from '../hooks/useUserPreferences'
-import { Palette, Sun, Moon, Droplets, Github, Zap, Code, Eye, DollarSign, IndianRupee, Shield } from 'lucide-react'
+import { useTour } from '../contexts/TourContext'
+import { Palette, Sun, Moon, Droplets, Github, Zap, Code, Eye, DollarSign, IndianRupee, Shield, Play } from 'lucide-react'
 
 export default function Settings() {
   const { user } = useUser()
   const { currentTheme, changeTheme, themes } = useTheme()
   const { preferences, updatePreferences, isUpdating } = useUserPreferences()
+  const { startTourManually } = useTour()
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [resetText, setResetText] = useState('')
   const [isResetting, setIsResetting] = useState(false)
@@ -232,6 +234,14 @@ export default function Settings() {
       <div className="p-6 card">
         <h3 className="theme-text-lg mb-4">Account</h3>
         <div className="space-y-3">
+          <button
+            onClick={startTourManually}
+            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-all duration-200 active:scale-95 shadow-sm"
+          >
+            <Play className="w-4 h-4" />
+            Start App Tour
+          </button>
+          
           <button
             onClick={() => supabase.auth.signOut()}
             className="btn-secondary w-full"

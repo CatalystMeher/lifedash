@@ -17,10 +17,15 @@ import AIChat from './pages/AIChat'
 import Landing from './pages/Landing'
 import Privacy from './pages/Privacy'
 import ErrorBoundary from './components/ErrorBoundary'
+import GuidedTour from './components/GuidedTour'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { TourProvider } from './contexts/TourContext'
 import { initializeCapacitor } from './lib/capacitor'
+import useFirstTimeUser from './hooks/useFirstTimeUser'
 
 export default function App() {
+  const { isFirstTimeUser } = useFirstTimeUser();
+  
   useEffect(() => {
     // Initialize Capacitor when the app starts
     initializeCapacitor();
@@ -28,32 +33,37 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <ErrorBoundary>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/landing" element={<Landing />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/" element={<Navigate to="/home" replace />} />
-          <Route element={<RequireAuth />}>
-            <Route element={<MainLayout />}>
-              <Route path="/home" element={<Home />} />
-              <Route path="/stats" element={<Stats />} />
-              <Route path="/habits" element={<Habits />} />
-              <Route path="/todos" element={<Todos />} />
-              <Route path="/focus" element={<Focus />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/stats/:id" element={<StatDetail />} />
+      <TourProvider>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/landing" element={<Landing />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route element={<RequireAuth />}>
+              <Route element={<MainLayout />}>
+                <Route path="/home" element={<Home />} />
+                <Route path="/stats" element={<Stats />} />
+                <Route path="/habits" element={<Habits />} />
+                <Route path="/todos" element={<Todos />} />
+                <Route path="/focus" element={<Focus />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/stats/:id" element={<StatDetail />} />
+              </Route>
+              <Route path="/ai-chat" element={<AIChat />} />
+              {/* Calendar temporarily disabled
+              <Route element={<CalendarLayout />}>
+                <Route path="/calendar" element={<Calendar />} />
+              </Route>
+              */}
             </Route>
-            <Route path="/ai-chat" element={<AIChat />} />
-            {/* Calendar temporarily disabled
-            <Route element={<CalendarLayout />}>
-              <Route path="/calendar" element={<Calendar />} />
-            </Route>
-            */}
-          </Route>
-        </Routes>
-      </ErrorBoundary>
+          </Routes>
+          
+          {/* Guided Tour */}
+          <GuidedTour isFirstTimeUser={isFirstTimeUser} />
+        </ErrorBoundary>
+      </TourProvider>
     </ThemeProvider>
   )
 }
