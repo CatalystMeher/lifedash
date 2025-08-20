@@ -3,14 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
-    <link rel="manifest" href="/manifest.json" />
+
     <!-- <meta name="viewport" content="viewport-fit=cover" /> -->
     <meta name="viewport" content="viewport-fit=cover, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <meta name="theme-color" content="#22C55E" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="LifeDash" />
-    <link rel="apple-touch-icon" href="/logo.png" />
+
     <meta name="description" content="Track your habits, stats, and focus with LifeDash" />
 
     <title>LifeDash</title>
@@ -40,18 +36,7 @@
         }, 2000);
       }
       
-      // Register service worker for PWA
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
-      }
+
     </script>
   </body>
 </html>

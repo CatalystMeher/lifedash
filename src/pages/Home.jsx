@@ -6,7 +6,7 @@ import Sparkline from '../components/Sparkline'
 import FAB from '../components/FAB'
 import AIChatButton from '../components/AIChatButton'
 import QuickLogModal from '../components/QuickLogModal'
-import InstallPrompt from '../components/InstallPrompt'
+
 import TodoListCompact from '../components/TodoListCompact'
 import useUser from '../hooks/useUser'
 import { supabase } from '../lib/supabase'
@@ -551,7 +551,7 @@ export default function Home() {
       <AIChatButton onClick={() => navigate('/ai-chat')} />
       <FAB onClick={() => setOpenQL(true)} />
       <QuickLogModal open={openQL} onClose={() => setOpenQL(false)} user={user} onSave={refreshData} />
-      <InstallPrompt />
+
     </div>
   )
 }

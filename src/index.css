@@ -121,10 +121,7 @@
     z-index: 1000;
   }
 
-  /* Install prompt positioning with safe areas */
-  .install-prompt-bottom {
-    bottom: 4rem;
-  }
+
 
   /* Fullscreen focus close button positioning with safe areas */
   .fullscreen-close-top {

@@ -156,64 +156,34 @@ export default function AIChat() {
         highPriority: todos.filter(todo => !todo.completed && todo.priority === 'high').length
       }
 
-      const systemMessage = {
-        role: 'system',
-        content: `You are a personal AI assistant for LifeDash, a productivity and habit tracking app. You have access to the user's lifetime data summary.
 
-USER'S LIFETIME DATA SUMMARY:
 
-STATS (${statsSummary.length} total):
-${statsSummary.map(stat => `- ${stat.name} (${stat.type}): ${stat.totalValue} ${stat.unit} total (${stat.totalEntries} entries, avg: ${stat.averageValue} ${stat.unit})`).join('\n')}
-
-HABITS (${habitsSummary.length} total):
-${habitsSummary.map(habit => `- ${habit.name}: ${habit.totalCheckins} total check-ins, ${habit.currentStreak} day streak, ${habit.schedule} schedule`).join('\n')}
-
-TODOS:
-- Total created: ${todosSummary.total}
-- Completed: ${todosSummary.completed}
-- Pending: ${todosSummary.pending}
-- High priority pending: ${todosSummary.highPriority}
-
-PRODUCTIVITY OVERVIEW:
-- Total stats tracked: ${statsSummary.length}
-- Total habit check-ins: ${habitsSummary.reduce((sum, habit) => sum + habit.totalCheckins, 0)}
-- Todo completion rate: ${todosSummary.total > 0 ? Math.round((todosSummary.completed / todosSummary.total) * 100) : 0}%
-
-USER PREFERENCES:
-- Amount formatting: ${preferences?.amount_format || 'US'}
-
-Guidelines:
-- Be concise, helpful, and actionable
-- Reference specific stats and habits by name when relevant
-- Provide insights based on lifetime totals and completion rates
-- Suggest improvements based on overall patterns
-- Use the user's preferred amount formatting
-- Focus on productivity, habits, and personal development
-- Keep responses under 200 words unless detailed analysis is requested`
-      }
-
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [systemMessage, ...messages, userMessage],
-          max_tokens: 500,
-          temperature: 0.7
-        })
+      // Call Supabase Edge Function instead of OpenAI directly
+      const { data: aiResponse, error } = await supabase.functions.invoke('ai-chat', {
+        body: {
+          message: content,
+          contextData: {
+            stats: statsSummary,
+            habits: habitsSummary,
+            recentEntries: recentEntries.slice(0, 50), // Limit to recent entries
+            todos: todosSummary,
+            userPreferences: preferences
+          },
+          conversationHistory: messages.map(m => ({ role: m.role, content: m.content }))
+        }
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to get response from AI')
+      if (error) {
+        throw new Error(error.message || 'Failed to get AI response')
       }
 
-      const data = await response.json()
+      if (aiResponse.error) {
+        throw new Error(aiResponse.error)
+      }
+
       const assistantMessage = { 
         role: 'assistant', 
-        content: data.choices[0].message.content, 
+        content: aiResponse.response, 
         timestamp: new Date() 
       }
       

@@ -49,10 +49,12 @@ The AI is configured with a comprehensive system message that:
 
 ### API Integration
 
-- Uses OpenAI's Chat Completions API
+- Uses Supabase Edge Functions for secure API calls
+- OpenAI API key is stored securely on the backend
 - Sends user data as context in system message
 - Maintains conversation history for context
 - Handles errors gracefully with user-friendly messages
+- Includes rate limiting and authentication
 
 ### Data Fetching
 
@@ -63,18 +65,19 @@ The AI is configured with a comprehensive system message that:
 
 ## Setup Requirements
 
-1. **OpenAI API Key**: Required for AI functionality
-   - Get from: https://platform.openai.com/api-keys
-   - Add to `.env.local` as `VITE_OPENAI_API_KEY`
+1. **Supabase Edge Function**: AI chat is handled by Supabase Edge Functions
+   - See [SUPABASE_AI_SETUP.md](./SUPABASE_AI_SETUP.md) for setup instructions
+   - OpenAI API key is stored securely in Supabase
 
-2. **Environment Variables**: Updated `env.example` with OpenAI configuration
+2. **Environment Variables**: No OpenAI API key needed in frontend
 
 ## Privacy & Security
 
 - Data is sent to OpenAI for processing but not stored
 - Conversation history is session-only (not persisted)
 - No sensitive data is logged or stored
-- API key is used client-side (consider moving to backend for production)
+- API key is stored securely in Supabase Edge Functions
+- All requests are authenticated and rate-limited
 
 ## Usage
 
