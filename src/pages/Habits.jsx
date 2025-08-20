@@ -25,7 +25,7 @@ export default function Habits() {
     queryFn: fetchHabits,
     enabled: !!user && !loading
   })
-  const [todayMap, setTodayMap] = useState(new Map()) // habitId -> done
+  const [todayMap, setTodayMap] = useState(new Map()) 
 
   useEffect(() => {
     if (!user?.id) return
@@ -110,7 +110,7 @@ export default function Habits() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold theme-text-2xl">Habits</h2>
         <button onClick={() => setOpen(true)} className="btn-primary">New</button>

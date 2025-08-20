@@ -1,6 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
-
+@layer utilities {
+  .pt-safe { padding-top: var(--safe-area-inset-top); }
+  .pb-safe { padding-bottom: var(--safe-area-inset-bottom); }
+  .pl-safe { padding-left: var(--safe-area-inset-left); }
+  .pr-safe { padding-right: var(--safe-area-inset-right); }
+  .px-safe {
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+  }
+  .safe-h-screen {
+    height: calc(100dvh - var(--safe-area-inset-top) - var(--safe-area-inset-bottom));
+  }
+}
 @layer base {
   * {
     border-color: var(--border-color);
@@ -15,6 +27,87 @@
     background-color: var(--bg-primary);
     color: var(--text-primary);
     font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    width: 100%;
+  }
+
+  #root {
+    min-height: 100vh;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Ensure full viewport usage */
+  .min-h-screen {
+    min-height: 100vh !important;
+  }
+
+  .h-screen {
+    height: 100vh !important;
+  }
+
+  /* Safe area support for mobile devices */
+  :root {
+    --safe-area-inset-top: 0px;
+    --safe-area-inset-bottom: 0px;
+    --safe-area-inset-left: 0px;
+    --safe-area-inset-right: 0px;
+    --status-bar-height: 0px;
+  }
+
+  .safe-area-top {
+    padding-top: var(--safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: var(--safe-area-inset-bottom);
+  }
+
+  .safe-area-left {
+    padding-left: var(--safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: var(--safe-area-inset-right);
+  }
+
+  .safe-area-inset {
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+  }
+
+  /* FAB positioning with safe areas */
+  .fab-bottom-mobile {
+    bottom: calc(6rem + 20px);
+  }
+
+  .fab-bottom-desktop {
+    bottom: calc(1rem + 20px);
+  }
+
+  /* AI Chat Button positioning with 10px spacing from FAB */
+  .ai-chat-bottom-mobile {
+    bottom: calc(6rem  + 3.5rem + 0.625rem);
+  }
+
+  .ai-chat-bottom-desktop {
+    bottom: calc(1rem + 20px + 3.5rem + 0.625rem);
+  }
+
+  /* Install prompt positioning with safe areas */
+  .install-prompt-bottom {
+    bottom: 4rem;
+  }
+
+  /* Fullscreen focus close button positioning with safe areas */
+  .fullscreen-close-top {
+    top: 1rem;
   }
 
   /* Theme CSS Custom Properties */
@@ -255,6 +348,16 @@
   .animate-fade-in {
     animation: fade-in 0.2s ease-out;
   }
+
+  /* Hide scrollbar for webkit browsers */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
 }
 
 @layer components {
@@ -363,5 +466,173 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+  }
+
+  /* Calendar-specific styles */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+  }
+
+  .calendar-day {
+    min-height: 100px;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-primary);
+    transition: all 0.2s;
+  }
+
+  .calendar-day:hover {
+    background-color: var(--bg-secondary);
+  }
+
+  .calendar-day.today {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .calendar-day.other-month {
+    opacity: 0.5;
+  }
+
+  .calendar-time-slot {
+    min-height: 60px;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+  }
+
+  .calendar-time-slot:hover {
+    background-color: var(--bg-secondary);
+  }
+
+  .calendar-event {
+    margin: 2px 0;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .calendar-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .calendar-event.compact {
+    padding: 2px 4px;
+    font-size: 0.75rem;
+    margin: 1px 0;
+  }
+
+  .calendar-event.all-day {
+    background-color: var(--accent-bg);
+    color: var(--accent-text);
+  }
+
+  .calendar-event.overlapping {
+    margin-left: 20px;
+  }
+
+  .calendar-event-indicator {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--accent-bg);
+    margin: 0 auto;
+  }
+
+  .calendar-drop-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .calendar-drop-zone.drag-over {
+    border-color: var(--accent-bg);
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+
+  .calendar-current-time {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #ef4444;
+    z-index: 10;
+  }
+
+  .calendar-current-time::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: -3px;
+    width: 8px;
+    height: 8px;
+    background-color: #ef4444;
+    border-radius: 50%;
+  }
+
+  /* Custom breakpoint for very large screens */
+  @media (min-width: 1920px) {
+    .3xl\:grid-cols-8 {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+  }
+
+  /* Calendar height improvements */
+  .calendar-time-slot {
+    min-height: 60px;
+    height: calc((100vh - 300px) / 24);
+    max-height: 80px;
+  }
+
+  .calendar-week-time-slot {
+    min-height: 40px;
+    height: calc((100vh - 400px) / 16);
+    max-height: 60px;
+  }
+
+  .calendar-day-cell {
+    min-height: 120px;
+    height: calc((100vh - 300px) / 6);
+    max-height: 200px;
+  }
+
+  .calendar-month-cell {
+    min-height: 100px;
+    height: calc((100vh - 300px) / 6);
+    max-height: 180px;
+  }
+
+  /* Draggable time selector styling */
+  .calendar-drag-selection {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.2) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* Enhanced event styling */
+  .calendar-event {
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+  }
+
+  .calendar-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  }
+
+  .calendar-event.compact {
+    transition: all 0.15s ease;
+    margin: 1px 0;
+  }
+
+  .calendar-event.compact:hover {
+    transform: scale(1.02);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
   }
 }

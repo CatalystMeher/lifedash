@@ -73,7 +73,69 @@ export default {
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },
+      // Safe area utilities
+      spacing: {
+        'safe-top': 'var(--safe-area-inset-top, 0px)',
+        'safe-bottom': 'var(--safe-area-inset-bottom, 0px)',
+        'safe-left': 'var(--safe-area-inset-left, 0px)',
+        'safe-right': 'var(--safe-area-inset-right, 0px)',
+      },
+      padding: {
+        'safe-top': 'var(--safe-area-inset-top, 0px)',
+        'safe-bottom': 'var(--safe-area-inset-bottom, 0px)',
+        'safe-left': 'var(--safe-area-inset-left, 0px)',
+        'safe-right': 'var(--safe-area-inset-right, 0px)',
+      },
+      margin: {
+        'safe-top': 'var(--safe-area-inset-top, 0px)',
+        'safe-bottom': 'var(--safe-area-inset-bottom, 0px)',
+        'safe-left': 'var(--safe-area-inset-left, 0px)',
+        'safe-right': 'var(--safe-area-inset-right, 0px)',
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    // Custom plugin for safe area utilities
+    function({ addUtilities }) {
+      const newUtilities = {
+        '.pt-safe': {
+          paddingTop: 'var(--safe-area-inset-top, 0px)',
+        },
+        '.pb-safe': {
+          paddingBottom: 'var(--safe-area-inset-bottom, 0px)',
+        },
+        '.pl-safe': {
+          paddingLeft: 'var(--safe-area-inset-left, 0px)',
+        },
+        '.pr-safe': {
+          paddingRight: 'var(--safe-area-inset-right, 0px)',
+        },
+        '.mt-safe': {
+          marginTop: 'var(--safe-area-inset-top, 0px)',
+        },
+        '.mb-safe': {
+          marginBottom: 'var(--safe-area-inset-bottom, 0px)',
+        },
+        '.ml-safe': {
+          marginLeft: 'var(--safe-area-inset-left, 0px)',
+        },
+        '.mr-safe': {
+          marginRight: 'var(--safe-area-inset-right, 0px)',
+        },
+        '.top-safe': {
+          top: 'var(--safe-area-inset-top, 0px)',
+        },
+        '.bottom-safe': {
+          bottom: 'var(--safe-area-inset-bottom, 0px)',
+        },
+        '.left-safe': {
+          left: 'var(--safe-area-inset-left, 0px)',
+        },
+        '.right-safe': {
+          right: 'var(--safe-area-inset-right, 0px)',
+        },
+      }
+      addUtilities(newUtilities)
+    }
+  ],
 }

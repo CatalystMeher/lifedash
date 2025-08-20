@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">lifedash</string>
+    <string name="title_activity_main">lifedash</string>
+    <string name="package_name">com.lifedash.app</string>
+    <string name="custom_url_scheme">com.lifedash.app</string>
+</resources>

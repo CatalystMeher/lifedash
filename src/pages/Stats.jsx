@@ -78,7 +78,7 @@ export default function Stats() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold theme-text-2xl">Stats</h2>
         <button

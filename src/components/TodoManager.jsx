@@ -244,6 +244,37 @@ export default function TodoManager({ user }) {
     setEditingTodo(null)
   }
 
+  const handleScheduleTodo = async (todo) => {
+    try {
+      const startTime = todo.due_date 
+        ? dayjs(todo.due_date).hour(9).minute(0) // Default to 9 AM
+        : dayjs().add(1, 'hour')
+      
+      const endTime = startTime.add(1, 'hour')
+      
+      const { error } = await supabase
+        .from('calendar_events')
+        .insert([{
+          user_id: user.id,
+          title: todo.title,
+          description: todo.notes || '',
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          all_day: false,
+          color: '#3b82f6',
+          todo_id: todo.id
+        }])
+      
+      if (error) throw error
+      
+      queryClient.invalidateQueries(['calendar-events'])
+      toast.success('Todo scheduled as event')
+    } catch (error) {
+      console.error('Error scheduling todo:', error)
+      toast.error('Failed to schedule todo as event')
+    }
+  }
+
   const clearCompleted = async () => {
     const completedTodos = todos.filter(t => t.completed)
     if (completedTodos.length === 0) return
@@ -423,6 +454,7 @@ export default function TodoManager({ user }) {
                             onToggle={handleToggle}
                             onEdit={handleEdit}
                             onDelete={handleDelete}
+                            onSchedule={handleScheduleTodo}
                           />
                         ))}
                       </div>
@@ -451,6 +483,7 @@ export default function TodoManager({ user }) {
               onToggle={handleToggle}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onSchedule={handleScheduleTodo}
             />
           ))}
           

@@ -4,6 +4,7 @@ import {
   LineChart,
   CheckSquare,
   ListTodo,
+  Calendar as CalendarIcon,
   Timer,
   BarChart3,
   Settings,

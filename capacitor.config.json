@@ -1,0 +1,50 @@
+
+{
+  "appId": "com.lifedash.app",
+  "appName": "lifedash",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#ffffff",
+    "webContentsDebuggingEnabled": true,
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webViewPresentationStyle": "fullscreen",
+    "overrideUserAgent": "",
+    "appendUserAgent": "",
+    "webViewConfiguration": {
+      "allowsInlineMediaPlayback": true,
+      "allowsAirPlayForMediaPlayback": true,
+      "allowsPictureInPictureMediaPlayback": true,
+      "limitsNavigationsToAppBoundDomains": false,
+      "allowUniversalAccessFromFileURLs": true
+    }
+  },
+  "ios": {
+    "backgroundColor": "#ffffff",
+    "webContentsDebuggingEnabled": true,
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webViewPresentationStyle": "fullscreen",
+    "overrideUserAgent": "",
+    "appendUserAgent": "",
+    "webViewConfiguration": {
+      "allowsInlineMediaPlayback": true,
+      "allowsAirPlayForMediaPlayback": true,
+      "allowsPictureInPictureMediaPlayback": true,
+      "limitsNavigationsToAppBoundDomains": false,
+      "allowUniversalAccessFromFileURLs": true
+    }
+  },
+  "plugins": {
+    "StatusBar": { "style": "DARK", "backgroundColor": "#ffffff", "overlaysWebView": false },
+    "SafeArea": {
+      "enabled": true,
+      "customColorsForSystemBars": true,
+      "statusBarColor": "#000000",
+      "statusBarContent": "light",
+      "navigationBarColor": "#000000",
+      "navigationBarContent": "light",
+      "offset": 0
+    }
+  }
+}

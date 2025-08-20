@@ -1,8 +1,10 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import Card from '../components/Card'
 import Sparkline from '../components/Sparkline'
 import FAB from '../components/FAB'
+import AIChatButton from '../components/AIChatButton'
 import QuickLogModal from '../components/QuickLogModal'
 import InstallPrompt from '../components/InstallPrompt'
 import TodoListCompact from '../components/TodoListCompact'
@@ -66,6 +68,7 @@ export default function Home() {
   const { user, loading } = useUser()
   const { preferences } = useUserPreferences()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [openQL, setOpenQL] = useState(false)
   
   // Get the last selected period from localStorage, default to 'today'
@@ -174,14 +177,19 @@ export default function Home() {
       grouped.get(statUnit).push(stat)
     }
     
-    // Convert to array and filter out groups with only one stat
+    // Convert to array and sort stats within each group by insertion date (newest first)
     return Array.from(grouped.entries())
-      .filter(([, stats]) => stats.length > 1)
-      .map(([unit, stats]) => ({
-        unit,
-        stats,
-        total: stats.reduce((sum, stat) => sum + (periodValues.get(stat.id) || 0), 0)
-      }))
+      .map(([unit, stats]) => {
+        // Sort stats within the group by insertion date (newest first)
+        const sortedStats = stats.sort((a, b) => new Date(b.inserted_at) - new Date(a.inserted_at))
+        
+        return {
+          unit,
+          stats: sortedStats,
+          total: sortedStats.reduce((sum, stat) => sum + (periodValues.get(stat.id) || 0), 0)
+        }
+      })
+      .sort((a, b) => a.unit.localeCompare(b.unit))
   }, [stats, periodValues])
 
   // compute focus (today + 7-day spark) - only duration stats
@@ -213,6 +221,13 @@ export default function Home() {
   )
   const doneSet = useMemo(() => new Set(checkins.filter(c => c.done === true).map(c => c.habit_id)), [checkins])
   const habitsDone = todaysHabits.filter(h => doneSet.has(h.id)).length
+
+  // Sort stats by insertion date (newest first)
+  const sortedStats = useMemo(() => {
+    return stats.sort((a, b) => new Date(b.inserted_at) - new Date(a.inserted_at))
+  }, [stats])
+
+
 
   // Toggle habit completion
   const toggleHabit = async (habit) => {
@@ -331,37 +346,68 @@ export default function Home() {
       {amountStatsByUnit.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold theme-text-lg">Amount Totals</h4>
+            <h4 className="text-lg font-semibold theme-text-lg">Amount Stats</h4>
             <span className="text-xs text-muted">
               {getPeriodDescription(statsPeriod)}
             </span>
           </div>
           <div className="space-y-4">
-            {amountStatsByUnit.map(({ unit, stats, total }) => (
-              <Card key={unit} className="p-4 w-full">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted mb-1">Total {unit}</p>
-                    <h3 className="text-xl font-bold theme-text-xl">
-                      {formatNumber(total, preferences.amount_format)}{unit !== 'no-unit' ? ` ${unit}` : ''}
-                    </h3>
-                    <p className="text-xs text-muted">
-                      {stats.length} stat{stats.length !== 1 ? 's' : ''}
-                    </p>
+            {amountStatsByUnit.map(({ unit, stats, total }) => {
+              // If only one stat in the group, show it as an individual stat
+              if (stats.length === 1) {
+                const stat = stats[0]
+                const periodValue = periodValues.get(stat.id) || 0
+                const IconComponent = stat.icon && LucideIcons[stat.icon] ? LucideIcons[stat.icon] : LucideIcons.BarChart3
+                return (
+                  <Card key={stat.id} className="p-4 w-full">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted mb-1">{stat.name}</p>
+                        <h3 className="text-xl font-bold theme-text-xl">
+                          {formatNumber(periodValue, preferences.amount_format)}{unit !== 'no-unit' ? ` ${unit}` : ''}
+                        </h3>
+                        <p className="text-xs text-muted">
+                          {getPeriodDescription(statsPeriod)}
+                        </p>
+                      </div>
+                      <div 
+                        className="w-8 h-8 rounded-lg flex items-center justify-center"
+                        style={{ background: stat.color || '#e5e5e5' }}
+                      >
+                        <IconComponent className="w-4 h-4 text-white theme-icon" />
+                      </div>
+                    </div>
+                  </Card>
+                )
+              }
+              
+              // If multiple stats, show as grouped total
+              return (
+                <Card key={unit} className="p-4 w-full">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted mb-1">Total {unit}</p>
+                      <h3 className="text-xl font-bold theme-text-xl">
+                        {formatNumber(total, preferences.amount_format)}{unit !== 'no-unit' ? ` ${unit}` : ''}
+                      </h3>
+                      <p className="text-xs text-muted">
+                        {stats.length} stat{stats.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    <OverlappedIcons stats={stats} size="md" />
                   </div>
-                  <OverlappedIcons stats={stats} size="md" />
-                </div>
-              </Card>
-            ))}
+                </Card>
+              )
+            })}
           </div>
         </section>
       )}
 
       {/* Stats */}
-      {stats.length > 0 && (
+      {sortedStats.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold theme-text-lg">Stats</h4>
+            <h4 className="text-lg font-semibold theme-text-lg">All Stats</h4>
             <div className="flex gap-2 flex-wrap">
               {[
                 { key: 'today', label: 'Today' },
@@ -384,12 +430,12 @@ export default function Home() {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {stats.slice(0, 6).map(stat => {
+            {sortedStats.map(stat => {
               const periodValue = periodValues.get(stat.id) || 0
               const unit = stat.unit || (stat.type === 'duration' ? 'min' : '')
               const IconComponent = stat.icon && LucideIcons[stat.icon] ? LucideIcons[stat.icon] : LucideIcons.BarChart3
               return (
-                <Card key={stat.id} className="p-4">
+                <Card key={stat.id} className="p-4 relative">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted mb-1">{stat.name}</p>
@@ -416,7 +462,7 @@ export default function Home() {
 
       {stats.length === 0 && (
         <section>
-          <h4 className="text-lg font-semibold theme-text-lg mb-4">Stats</h4>
+          <h4 className="text-lg font-semibold theme-text-lg mb-4">All Stats</h4>
           <div className="text-center p-8 card">
             <div className="text-4xl mb-4">📊</div>
             <div className="text-lg font-semibold theme-text-lg mb-2">No stats yet</div>
@@ -502,6 +548,7 @@ export default function Home() {
       {/* Bottom padding for better scrolling */}
       <div className="pb-20" />
 
+      <AIChatButton onClick={() => navigate('/ai-chat')} />
       <FAB onClick={() => setOpenQL(true)} />
       <QuickLogModal open={openQL} onClose={() => setOpenQL(false)} user={user} onSave={refreshData} />
       <InstallPrompt />

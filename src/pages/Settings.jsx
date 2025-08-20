@@ -4,7 +4,7 @@ import useUser from '../hooks/useUser'
 import toast from 'react-hot-toast'
 import { useTheme } from '../contexts/ThemeContext'
 import { useUserPreferences } from '../hooks/useUserPreferences'
-import { Palette, Sun, Moon, Droplets, Github, Zap, Code, Eye, DollarSign, IndianRupee } from 'lucide-react'
+import { Palette, Sun, Moon, Droplets, Github, Zap, Code, Eye, DollarSign, IndianRupee, Shield } from 'lucide-react'
 
 export default function Settings() {
   const { user } = useUser()
@@ -13,6 +13,8 @@ export default function Settings() {
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [resetText, setResetText] = useState('')
   const [isResetting, setIsResetting] = useState(false)
+
+
 
   const themeOptions = [
     { key: 'light', icon: Sun, accentColor: '#fbbf24', textColor: '#000000' },
@@ -157,7 +159,7 @@ export default function Settings() {
               onClick={() => updatePreferences({ amount_format: 'US' })}
               disabled={isUpdating}
               className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
-                preferences.amount_format === 'US'
+                preferences?.amount_format === 'US'
                   ? 'accent-border accent-bg'
                   : 'theme-border hover:theme-bg-secondary'
               }`}
@@ -190,7 +192,7 @@ export default function Settings() {
               onClick={() => updatePreferences({ amount_format: 'IN' })}
               disabled={isUpdating}
               className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
-                preferences.amount_format === 'IN'
+                preferences?.amount_format === 'IN'
                   ? 'accent-border accent-bg'
                   : 'theme-border hover:theme-bg-secondary'
               }`}
@@ -243,6 +245,25 @@ export default function Settings() {
           >
             Reset All Data
           </button>
+        </div>
+      </div>
+
+      {/* Legal & Privacy */}
+      <div className="p-6 card">
+        <h3 className="theme-text-lg mb-4">Legal & Privacy</h3>
+        <div className="space-y-3">
+          <a
+            href="/privacy"
+            className="flex items-center gap-3 p-3 rounded-xl border theme-border hover:theme-bg-secondary transition-all duration-200"
+          >
+            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+              <Shield className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="font-medium theme-text">Privacy Policy</div>
+              <div className="text-sm theme-text-secondary">How we handle your data</div>
+            </div>
+          </a>
         </div>
       </div>
 

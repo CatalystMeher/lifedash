@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Check, Circle, AlertTriangle, Clock, GripVertical } from 'lucide-react'
+import { Check, Circle, AlertTriangle, Clock, GripVertical, Calendar } from 'lucide-react'
 import dayjs from 'dayjs'
 import Card from './Card'
 
@@ -22,6 +22,7 @@ export default function TodoCard({
   onToggle, 
   onEdit, 
   onDelete, 
+  onSchedule,
   isDragging = false,
   dragHandleProps = null,
   isOver = false
@@ -136,6 +137,15 @@ export default function TodoCard({
         <div className={`flex items-center gap-1 transition-opacity duration-200 ${
           isHovered ? 'opacity-100' : 'opacity-0'
         }`}>
+          {onSchedule && (
+            <button
+              onClick={() => onSchedule(todo)}
+              className="p-2 rounded-lg hover:theme-bg-secondary transition-colors"
+              title="Schedule as event"
+            >
+              <Calendar className="w-4 h-4 text-muted" />
+            </button>
+          )}
           <button
             onClick={() => onEdit(todo)}
             className="p-2 rounded-lg hover:theme-bg-secondary transition-colors"

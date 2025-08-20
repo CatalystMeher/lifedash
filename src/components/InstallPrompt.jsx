@@ -70,7 +70,7 @@ export default function InstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-50 animate-slide-up">
+    <div className="fixed bottom-20 left-4 right-4 z-50 animate-slide-up install-prompt-bottom">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-start gap-3">
           <div className="flex-1">

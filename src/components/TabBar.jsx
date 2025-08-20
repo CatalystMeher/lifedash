@@ -4,9 +4,9 @@ import {
   LineChart,
   CheckSquare,
   ListTodo,
+  Calendar as CalendarIcon,
   Timer,
   BarChart3,
-  Settings,
 } from 'lucide-react'
 
 const tabs = [
@@ -16,13 +16,12 @@ const tabs = [
   { to: '/todos', label: 'Todos', Icon: ListTodo },
   { to: '/focus', label: 'Focus', Icon: Timer },
   { to: '/analytics', label: 'Insights', Icon: BarChart3 },
-  { to: '/settings', label: 'Settings', Icon: Settings },
 ]
 
 export default function TabBar() {
   const { pathname } = useLocation()
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t theme-border theme-nav-bg shadow-sm">
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t theme-border theme-nav-bg shadow-sm pb-[10px]">
       <div className="flex justify-around items-center px-2 py-2">
         {tabs.map((tab) => {
           const active = pathname === tab.to || pathname.startsWith(`${tab.to}/`)
@@ -58,7 +57,6 @@ export default function TabBar() {
           )
         })}
       </div>
-      <div className="h-[env(safe-area-inset-bottom)]" />
     </nav>
   )
 }

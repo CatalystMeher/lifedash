@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
-import { Mail, Lock, Eye, EyeOff, Github, Key, Check } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Check } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 export default function Auth() {
   const [email, setEmail] = useState('')
@@ -11,9 +12,9 @@ export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [authMode, setAuthMode] = useState('email') // 'email', 'magic', 'setPassword', or 'resetPassword'
-  const [isSettingPassword, setIsSettingPassword] = useState(false)
+  const [authMode, setAuthMode] = useState('email') // 'email' or 'resetPassword'
   const [resetToken, setResetToken] = useState(null)
+  const navigate = useNavigate()
 
   // Check URL parameters and session for password reset
   useEffect(() => {
@@ -44,9 +45,6 @@ export default function Auth() {
         } else if (error) {
           toast.error(errorDescription || 'Password reset failed')
         }
-      } else if (urlParams.get('mode') === 'setPassword') {
-        setAuthMode('setPassword')
-        setIsSettingPassword(true)
       } else {
         // Check if user is already authenticated (from Supabase redirect)
         const { data: { session } } = await supabase.auth.getSession()
@@ -60,6 +58,19 @@ export default function Auth() {
 
     checkPasswordReset()
   }, [])
+
+  // Listen for auth state changes and redirect if user is authenticated
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log('User signed in, redirecting to home')
+        toast.success('Welcome back!')
+        navigate('/home', { replace: true })
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [navigate])
 
   async function handleEmailAuth(e) {
     e.preventDefault()
@@ -79,41 +90,9 @@ export default function Auth() {
           email,
           password
         })
-        if (error) {
-          // If password doesn't exist, offer to set one
-          if (error.message.includes('Invalid login credentials')) {
-            setIsSettingPassword(true)
-            setAuthMode('setPassword')
-            toast.error('No password set for this account. Please set a password first.')
-          } else {
-            throw error
-          }
-        } else {
-          toast.success('Welcome back!')
-        }
+        if (error) throw error
+        // The redirect will be handled by the auth state change listener
       }
-    } catch (error) {
-      toast.error(error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function setPasswordForAccount(e) {
-    e.preventDefault()
-    setLoading(true)
-    
-    try {
-      // Send a password reset email
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/auth'
-      })
-      
-      if (error) throw error
-      
-      toast.success('Check your email for the password reset link!')
-      setAuthMode('magic') // Switch back to magic link mode
-      setIsSettingPassword(false)
     } catch (error) {
       toast.error(error.message)
     } finally {
@@ -155,37 +134,6 @@ export default function Auth() {
     }
   }
 
-  async function sendMagicLink(e) {
-    e.preventDefault()
-    setLoading(true)
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: window.location.origin }
-      })
-      if (error) throw error
-      toast.success('Check your email for the sign-in link.')
-    } catch (error) {
-      toast.error(error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function signInWithGithub() {
-    setLoading(true)
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: { redirectTo: window.location.origin }
-      })
-      if (error) throw error
-    } catch (error) {
-      toast.error(error.message)
-      setLoading(false)
-    }
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center p-6 theme-bg">
       <div className="w-full max-w-md p-8 card shadow-xl">
@@ -196,38 +144,6 @@ export default function Auth() {
           <h1 className="text-2xl font-bold theme-text mb-2">Welcome to LifeDash</h1>
           <p className="theme-text-secondary">Sign in to continue to your dashboard</p>
         </div>
-        
-        {/* Auth Mode Toggle */}
-        {!resetToken && (
-          <div className="flex rounded-lg p-1 theme-bg-secondary mb-6">
-            <button
-              onClick={() => {
-                setAuthMode('email')
-                setIsSettingPassword(false)
-              }}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                authMode === 'email' 
-                  ? 'accent-bg accent-text' 
-                  : 'theme-text-secondary hover:theme-text'
-              }`}
-            >
-              Email & Password
-            </button>
-            <button
-              onClick={() => {
-                setAuthMode('magic')
-                setIsSettingPassword(false)
-              }}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                authMode === 'magic' 
-                  ? 'accent-bg accent-text' 
-                  : 'theme-text-secondary hover:theme-text'
-              }`}
-            >
-              Magic Link
-            </button>
-          </div>
-        )}
 
         {/* Reset Password Form */}
         {authMode === 'resetPassword' && resetToken && (
@@ -299,57 +215,6 @@ export default function Auth() {
           </div>
         )}
 
-        {/* Set Password Form */}
-        {authMode === 'setPassword' && !resetToken && (
-          <div className="space-y-4">
-            <div className="text-center mb-4">
-              <div className="w-12 h-12 rounded-full accent-bg flex items-center justify-center mx-auto mb-3">
-                <Key className="w-6 h-6 accent-text" />
-              </div>
-              <h2 className="text-lg font-semibold theme-text mb-2">Set Password</h2>
-              <p className="text-sm theme-text-secondary">
-                Your account was created with magic link. Set a password to use email & password login.
-              </p>
-            </div>
-            
-            <form onSubmit={setPasswordForAccount} className="space-y-4">
-              <div>
-                <label className="text-sm theme-text-secondary mb-2 block">Email address</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 theme-text-secondary w-4 h-4" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="input pl-10"
-                  />
-                </div>
-              </div>
-              
-              <button
-                disabled={loading}
-                className="btn-primary w-full py-3 text-lg"
-              >
-                {loading ? 'Sending...' : 'Send Password Reset Link'}
-              </button>
-            </form>
-            
-            <div className="text-center">
-              <button
-                onClick={() => {
-                  setAuthMode('magic')
-                  setIsSettingPassword(false)
-                }}
-                className="text-sm theme-text-secondary hover:accent-text transition-colors"
-              >
-                Or continue with magic link
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Email & Password Form */}
         {authMode === 'email' && !resetToken && (
           <form onSubmit={handleEmailAuth} className="space-y-4">
@@ -399,32 +264,6 @@ export default function Auth() {
           </form>
         )}
 
-        {/* Magic Link Form */}
-        {authMode === 'magic' && !resetToken && (
-          <form onSubmit={sendMagicLink} className="space-y-4">
-            <div>
-              <label className="text-sm theme-text-secondary mb-2 block">Email address</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 theme-text-secondary w-4 h-4" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="input pl-10"
-                />
-              </div>
-            </div>
-            <button
-              disabled={loading}
-              className="btn-primary w-full py-3 text-lg"
-            >
-              {loading ? 'Sending...' : 'Send magic link'}
-            </button>
-          </form>
-        )}
-
         {/* Toggle between Sign In and Sign Up */}
         {authMode === 'email' && !resetToken && (
           <div className="text-center mt-4">
@@ -435,45 +274,6 @@ export default function Auth() {
               {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
             </button>
           </div>
-        )}
-
-        {/* Help text for magic link users */}
-        {authMode === 'magic' && !resetToken && (
-          <div className="text-center mt-4">
-            <button
-              onClick={() => {
-                setAuthMode('setPassword')
-                setIsSettingPassword(true)
-              }}
-              className="text-sm theme-text-secondary hover:accent-text transition-colors"
-            >
-              Want to set a password for faster login?
-            </button>
-          </div>
-        )}
-
-        {/* Divider */}
-        {!resetToken && (
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full theme-border border-t"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 theme-bg theme-text-secondary">Or continue with</span>
-            </div>
-          </div>
-        )}
-
-        {/* Social Login */}
-        {!resetToken && (
-          <button
-            onClick={signInWithGithub}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 border theme-border rounded-lg hover:theme-bg-secondary transition-colors"
-          >
-            <Github className="w-5 h-5" />
-            <span className="theme-text">Continue with GitHub</span>
-          </button>
         )}
 
         {/* Footer */}

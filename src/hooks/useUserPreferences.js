@@ -36,6 +36,8 @@ export function useUserPreferences() {
         .upsert({
           user_id: user.id,
           ...updates
+        }, {
+          onConflict: 'user_id'
         })
         .select()
         .single()

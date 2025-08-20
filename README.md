@@ -12,6 +12,7 @@ A modern, mobile-first life tracking app built with React and Supabase.
 - **Focus Timer**: Pomodoro-style timer with automatic logging
 - **Analytics**: Visualize your data with charts and insights
 - **Quick Log**: Fast entry for multiple stats at once
+- **AI Assistant**: Personal AI coach with access to your data for insights and guidance
 - **Dark Mode**: Automatic theme switching
 
 ## Tech Stack
@@ -26,16 +27,87 @@ A modern, mobile-first life tracking app built with React and Supabase.
 
 1. Clone the repository
 2. Install dependencies: `npm install`
-3. Copy `env.example` to `.env.local` and fill in your Supabase credentials:
+3. Copy `env.example` to `.env.local` and fill in your credentials:
    ```bash
    cp env.example .env.local
    ```
+   - Add your Supabase URL and anon key
+   - For AI assistant feature, see [AI Chat Setup](#ai-chat-setup) below
 4. Set up your Supabase database with the required tables (see Database Schema below)
 5. Run the migrations in your Supabase SQL editor:
    - Copy and run the SQL from `migration_add_amount_type.sql` to add the 'amount' type
    - Copy and run the SQL from `migration_add_user_preferences.sql` to add user preferences
    - Copy and run the SQL from `migration_add_todos.sql` to add the todos table
 6. Run the development server: `npm run dev`
+
+## Mobile Development
+
+This app is configured with Capacitor for native mobile development on both Android and iOS.
+
+### Android Development
+
+#### Prerequisites
+
+1. Install Android Studio from [https://developer.android.com/studio](https://developer.android.com/studio)
+2. Install the Android SDK
+3. Set up an Android Virtual Device (AVD) or connect a physical Android device
+
+#### Building for Android
+
+1. Build the web app: `npm run cap:build`
+2. Open in Android Studio: `npm run cap:open`
+3. Run on device/emulator: `npm run cap:run`
+
+#### Android Commands
+
+- `npm run cap:build` - Build web app and sync with Android
+- `npm run cap:sync` - Sync web assets with Android project
+- `npm run cap:open` - Open Android project in Android Studio
+- `npm run cap:run` - Run app on connected device/emulator
+
+### iOS Development
+
+#### Prerequisites
+
+1. **macOS**: iOS development requires macOS
+2. **Xcode**: Install the latest version from the Mac App Store
+3. **CocoaPods**: Install via Homebrew: `brew install cocoapods`
+
+#### Building for iOS
+
+1. Build the web app: `npm run cap:build:ios`
+2. Open in Xcode: `npm run cap:open:ios`
+3. Run on simulator/device: `npm run cap:run:ios`
+
+#### iOS Commands
+
+- `npm run cap:build:ios` - Build web app and sync with iOS
+- `npm run cap:sync:ios` - Sync web assets with iOS project
+- `npm run cap:open:ios` - Open iOS project in Xcode
+- `npm run cap:run:ios` - Run app on simulator/device
+
+### Development Scripts
+
+For convenience, you can use the provided development scripts:
+
+```bash
+# Android
+./scripts/android-dev.sh build
+./scripts/android-dev.sh open
+./scripts/android-dev.sh run
+./scripts/android-dev.sh full
+
+# iOS
+./scripts/build-ios.sh
+```
+
+### Development Workflow
+
+1. Make changes to your React app
+2. Build and sync: `npm run cap:build` (Android) or `npm run cap:build:ios` (iOS)
+3. Test on device/emulator/simulator
+
+For detailed iOS setup instructions, see [IOS_SETUP.md](./IOS_SETUP.md).
 
 ## Database Schema
 
@@ -160,6 +232,53 @@ CREATE POLICY "Users can insert own preferences" ON user_preferences
 CREATE POLICY "Users can update own preferences" ON user_preferences
   FOR UPDATE USING (auth.uid() = user_id);
 ```
+
+## AI Chat Setup
+
+The app includes an AI assistant powered by OpenAI's GPT-4 that can:
+
+- **Analyze your data**: Get insights about your habits, stats, and productivity trends
+- **Provide recommendations**: Receive personalized suggestions for improvement
+- **Answer questions**: Ask about your progress, goals, and routines
+- **Quick interactions**: Use pre-defined quick messages for common queries
+
+### How it works
+
+The AI assistant has access to your:
+- Stats and their recent values
+- Habits and completion rates
+- Todo items and their status
+- User preferences and settings
+
+It uses this data to provide personalized insights and recommendations to help you on your life tracking journey.
+
+### Setup
+
+The AI chat feature is now handled by Supabase Edge Functions for better security and performance.
+
+#### Quick Setup (Recommended)
+
+1. Install Supabase CLI: `npm install -g supabase`
+2. Login to Supabase: `supabase login`
+3. Link your project: `supabase link --project-ref YOUR_PROJECT_ID`
+4. Set your OpenAI API key: `export OPENAI_API_KEY=your-key-here`
+5. Run the deployment script: `./scripts/deploy-ai-chat.sh`
+
+#### Manual Setup
+
+For detailed setup instructions, see [SUPABASE_AI_SETUP.md](./SUPABASE_AI_SETUP.md)
+
+### Security Features
+
+- **API Key Protection**: OpenAI API key is stored securely in Supabase
+- **User Authentication**: All requests are authenticated
+- **Rate Limiting**: 10 requests per minute per user
+- **Input Validation**: Message length and content validation
+- **Timeout Protection**: 30-second timeout prevents hanging requests
+
+### Privacy
+
+Your data is sent to OpenAI for processing but is not stored by OpenAI. The conversation history is only kept in your browser session and is not persisted.
 
 ## License
 

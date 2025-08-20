@@ -70,7 +70,7 @@ export default function FullscreenFocus({
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 z-10 p-3 text-white/70 hover:text-white transition-colors"
+        className="absolute right-4 z-10 p-3 text-white/70 hover:text-white transition-colors fullscreen-close-top"
       >
         <X size={24} />
       </button>
