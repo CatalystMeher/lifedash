@@ -96,33 +96,103 @@ export default function AIChatModal({ open, onClose }) {
     setIsLoading(true)
 
     try {
-      // Prepare context data for AI
-      const contextData = {
-        stats: stats.map(stat => ({
-          id: stat.id,
+      // Calculate comprehensive summaries to minimize token usage
+      const statsSummary = stats.map(stat => {
+        const statEntries = recentEntries.filter(entry => entry.stat_id === stat.id)
+        const totalEntries = statEntries.length
+        const totalValue = statEntries.reduce((sum, entry) => sum + entry.value, 0)
+        const avgValue = totalEntries > 0 ? (totalValue / totalEntries).toFixed(2) : 0
+        
+        // Get recent trend (last 7 days vs previous 7 days)
+        const now = new Date()
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+        
+        const recentWeek = statEntries.filter(entry => new Date(entry.inserted_at) >= weekAgo)
+        const previousWeek = statEntries.filter(entry => {
+          const entryDate = new Date(entry.inserted_at)
+          return entryDate >= twoWeeksAgo && entryDate < weekAgo
+        })
+        
+        const recentWeekTotal = recentWeek.reduce((sum, entry) => sum + entry.value, 0)
+        const previousWeekTotal = previousWeek.reduce((sum, entry) => sum + entry.value, 0)
+        const weekChange = previousWeekTotal > 0 ? ((recentWeekTotal - previousWeekTotal) / previousWeekTotal * 100).toFixed(1) : 0
+        
+        return {
           name: stat.name,
           type: stat.type,
           unit: stat.unit,
-          color: stat.color,
-          icon: stat.icon
-        })),
-        habits: habits.map(habit => ({
-          id: habit.id,
+          totalEntries,
+          totalValue: totalValue.toFixed(2),
+          averageValue: avgValue,
+          recentWeekTotal: recentWeekTotal.toFixed(2),
+          weekChange: `${weekChange}%`,
+          lastEntry: statEntries.length > 0 ? new Date(statEntries[0].inserted_at).toLocaleDateString() : 'Never'
+        }
+      })
+
+      const habitsSummary = habits.map(habit => {
+        const checkins = habit.checkins || []
+        const totalCheckins = checkins.length
+        const currentStreak = habit.streak || 0
+        
+        // Calculate weekly and monthly completion rates
+        const now = new Date()
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        
+        const weeklyCheckins = checkins.filter(checkin => new Date(checkin.date) >= weekAgo).length
+        const monthlyCheckins = checkins.filter(checkin => new Date(checkin.date) >= monthAgo).length
+        
+        // Calculate expected checkins based on schedule
+        const daysSinceStart = habit.created_at ? Math.floor((now - new Date(habit.created_at)) / (24 * 60 * 60 * 1000)) : 30
+        const expectedWeekly = habit.schedule === 'daily' ? 7 : habit.schedule === 'weekly' ? 1 : 3
+        const expectedMonthly = expectedWeekly * 4
+        
+        const weeklyRate = expectedWeekly > 0 ? Math.round((weeklyCheckins / expectedWeekly) * 100) : 0
+        const monthlyRate = expectedMonthly > 0 ? Math.round((monthlyCheckins / expectedMonthly) * 100) : 0
+        
+        return {
           name: habit.name,
           description: habit.description,
-          days_of_week: habit.days_of_week,
-          color: habit.color,
-          icon: habit.icon
-        })),
-        recentEntries: recentEntries.slice(0, 50), // Limit to recent entries
-        todos: todos.map(todo => ({
-          id: todo.id,
+          schedule: habit.schedule || 'daily',
+          totalCheckins,
+          currentStreak,
+          weeklyCheckins,
+          weeklyRate: `${weeklyRate}%`,
+          monthlyCheckins,
+          monthlyRate: `${monthlyRate}%`,
+          lastCheckin: checkins.length > 0 ? new Date(checkins[0].date).toLocaleDateString() : 'Never'
+        }
+      })
+
+      // Get detailed todo summary with pending items
+      const pendingTodos = todos.filter(todo => !todo.completed)
+      const highPriorityTodos = pendingTodos.filter(todo => todo.priority === 'high')
+      const mediumPriorityTodos = pendingTodos.filter(todo => todo.priority === 'medium')
+      const lowPriorityTodos = pendingTodos.filter(todo => todo.priority === 'low')
+      
+      const todosSummary = {
+        total: todos.length,
+        completed: todos.filter(todo => todo.completed).length,
+        pending: pendingTodos.length,
+        highPriority: highPriorityTodos.length,
+        mediumPriority: mediumPriorityTodos.length,
+        lowPriority: lowPriorityTodos.length,
+        completionRate: todos.length > 0 ? Math.round((todos.filter(todo => todo.completed).length / todos.length) * 100) : 0,
+        pendingTodos: pendingTodos.slice(0, 10).map(todo => ({
           title: todo.title,
-          description: todo.description,
-          completed: todo.completed,
           priority: todo.priority,
-          due_date: todo.due_date
-        })),
+          dueDate: todo.due_date ? new Date(todo.due_date).toLocaleDateString() : null,
+          overdue: todo.due_date ? new Date(todo.due_date) < now : false
+        }))
+      }
+
+      // Prepare optimized context data
+      const contextData = {
+        stats: statsSummary,
+        habits: habitsSummary,
+        todos: todosSummary,
         userPreferences: preferences
       }
 

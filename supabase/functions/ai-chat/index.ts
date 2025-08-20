@@ -112,23 +112,61 @@ serve(async (req) => {
       )
     }
 
-    // Prepare system message with context
-    const systemMessage = `You are a personal assistant for a life tracking app called LifeDash. You have access to the user's data including:
+    // Prepare comprehensive system message with detailed context
+    const stats = contextData?.stats || []
+    const habits = contextData?.habits || []
+    const todos = contextData?.todos || {}
+    const userPrefs = contextData?.userPreferences || {}
+    
+    const statsDetails = stats.length > 0 ? stats.map(stat => 
+      `• ${stat.name} (${stat.type}): ${stat.totalValue} ${stat.unit} total, ${stat.totalEntries} entries, avg: ${stat.averageValue} ${stat.unit}, this week: ${stat.recentWeekTotal} ${stat.unit} (${stat.weekChange} change), last entry: ${stat.lastEntry}`
+    ).join('\n') : 'No stats tracked yet'
+    
+    const habitsDetails = habits.length > 0 ? habits.map(habit => 
+      `• ${habit.name}: ${habit.totalCheckins} total check-ins, ${habit.currentStreak} day streak, ${habit.schedule} schedule, weekly rate: ${habit.weeklyRate}, monthly rate: ${habit.monthlyRate}, last check-in: ${habit.lastCheckin}`
+    ).join('\n') : 'No habits tracked yet'
+    
+    const todosDetails = todos.total > 0 ? 
+      `Total: ${todos.total}, Completed: ${todos.completed} (${todos.completionRate}%), Pending: ${todos.pending} (${todos.highPriority} high priority, ${todos.mediumPriority} medium, ${todos.lowPriority} low)` :
+      'No todos created yet'
+    
+    const pendingTodosList = todos.pendingTodos && todos.pendingTodos.length > 0 ? 
+      '\nPending todos:\n' + todos.pendingTodos.map(todo => 
+        `• ${todo.title} (${todo.priority} priority${todo.dueDate ? `, due: ${todo.dueDate}` : ''}${todo.overdue ? ' - OVERDUE' : ''})`
+      ).join('\n') : ''
+    
+    const systemMessage = `You are a personal AI assistant for LifeDash, a productivity and habit tracking app. You have access to the user's comprehensive data summary:
 
-- Stats: ${contextData?.stats?.length || 0} tracking metrics (${contextData?.stats?.map(s => s.name).join(', ') || 'none'})
-- Habits: ${contextData?.habits?.length || 0} habits (${contextData?.habits?.map(h => h.name).join(', ') || 'none'})
-- Recent entries: ${contextData?.recentEntries?.length || 0} data points
-- Todos: ${contextData?.todos?.length || 0} tasks
-- User preferences: ${JSON.stringify(contextData?.userPreferences || {})}
+USER'S DATA SUMMARY:
+
+STATS (${stats.length} total):
+${statsDetails}
+
+HABITS (${habits.length} total):
+${habitsDetails}
+
+TODOS:
+${todosDetails}${pendingTodosList}
+
+USER PREFERENCES:
+- Amount formatting: ${userPrefs.amount_format || 'US'}
+- Theme: ${userPrefs.theme || 'system'}
 
 Your role is to:
-1. Help users understand their data and progress
-2. Provide insights and recommendations
+1. Help users understand their data and progress patterns
+2. Provide actionable insights based on their stats, habits, and todos
 3. Suggest improvements and goal-setting strategies
-4. Answer questions about their habits, stats, and productivity
-5. Be encouraging and supportive
+4. Answer specific questions about their productivity and habits
+5. Be encouraging and supportive while being realistic
 
-Always be concise, helpful, and actionable. Use the user's data to provide personalized insights.`
+Guidelines:
+- Reference specific stats and habits by name when relevant
+- Use the data to provide personalized insights and recommendations
+- Focus on trends, patterns, and actionable improvements
+- Be concise but thorough (aim for 100-200 words unless detailed analysis is requested)
+- Use the user's preferred amount formatting
+- Prioritize high-priority todos and overdue items when relevant
+- Suggest specific, achievable improvements based on their current data`
 
     // Prepare messages array with conversation history
     const messages = [
@@ -149,7 +187,7 @@ Always be concise, helpful, and actionable. Use the user's data to provide perso
           'Authorization': `Bearer ${openaiApiKey}`
         },
         body: JSON.stringify({
-          model: 'gpt-4',
+          model: 'gpt-4o',
           messages,
           max_tokens: 500,
           temperature: 0.2

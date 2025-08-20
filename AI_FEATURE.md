@@ -88,19 +88,19 @@ The AI is configured with a comprehensive system message that:
 
 ## Future Enhancements
 
-- Move API calls to backend for better security
 - Add conversation persistence
 - Implement data visualization in responses
 - Add voice input/output capabilities
 - Create custom AI personas for different use cases
+- Enhanced analytics and insights
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **"Failed to get AI response"**
-   - Check OpenAI API key configuration
-   - Verify API key has sufficient credits
+   - Check Supabase Edge Function deployment
+   - Verify OpenAI API key is set in Supabase secrets
    - Check network connectivity
 
 2. **No data in responses**
@@ -112,3 +112,7 @@ The AI is configured with a comprehensive system message that:
    - Check browser console for errors
    - Verify component imports
    - Ensure user is authenticated
+
+4. **Rate limit exceeded**
+   - Wait 1 minute before trying again
+   - Limit is 10 requests per minute per user
