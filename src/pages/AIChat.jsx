@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm'
 import { supabase } from '../lib/supabase'
 import useUser from '../hooks/useUser'
 import { useUserPreferences } from '../hooks/useUserPreferences'
+import AIChatGuide from '../components/AIChatGuide'
 
 const QUICK_MESSAGES = [
   "How am I doing with my habits?",
@@ -73,13 +74,25 @@ export default function AIChat() {
   const { data: todos = [] } = useQuery({
     queryKey: ['todos-ai'],
     queryFn: async () => {
+      console.log('=== TODOS QUERY DEBUG ===')
+      console.log('User ID for todos query:', user?.id)
+      console.log('User object:', user)
+      
       const { data, error } = await supabase
         .from('todos')
         .select('*')
         .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
+        .order('inserted_at', { ascending: false })
         .limit(20)
-      if (error) throw error
+        
+      console.log('Todos query result - data:', data)
+      console.log('Todos query result - error:', error)
+      console.log('========================')
+      
+      if (error) {
+        console.error('Todos query error:', error)
+        throw error
+      }
       return data || []
     },
     enabled: !!user
@@ -103,6 +116,9 @@ export default function AIChat() {
   useEffect(() => {
     setTimeout(() => inputRef.current?.focus(), 100)
   }, [])
+
+  // Always show the AIChatGuide component - it will handle its own visibility logic
+  const [showAIChatGuide, setShowAIChatGuide] = useState(true);
 
   const sendMessage = async (content) => {
     if (!content.trim() || isLoading) return
@@ -137,9 +153,9 @@ export default function AIChat() {
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
         const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
         
-        const recentWeek = statEntries.filter(entry => new Date(entry.inserted_at) >= weekAgo)
+        const recentWeek = statEntries.filter(entry => new Date(entry.day) >= weekAgo)
         const previousWeek = statEntries.filter(entry => {
-          const entryDate = new Date(entry.inserted_at)
+          const entryDate = new Date(entry.day)
           return entryDate >= twoWeeksAgo && entryDate < weekAgo
         })
         
@@ -156,7 +172,7 @@ export default function AIChat() {
           averageValue: avgValue,
           recentWeekTotal: recentWeekTotal.toFixed(2),
           weekChange: `${weekChange}%`,
-          lastEntry: statEntries.length > 0 ? new Date(statEntries[0].inserted_at).toLocaleDateString() : 'Never'
+          lastEntry: statEntries.length > 0 ? new Date(statEntries[0].day).toLocaleDateString() : 'Never'
         }
       })
 
@@ -182,7 +198,7 @@ export default function AIChat() {
         const monthlyRate = expectedMonthly > 0 ? Math.round((monthlyCheckins / expectedMonthly) * 100) : 0
         
         return {
-          name: habit.name,
+        name: habit.name,
           description: habit.description,
           schedule: habit.schedule || 'daily',
           totalCheckins,
@@ -195,11 +211,19 @@ export default function AIChat() {
         }
       })
 
-      // Get detailed todo summary with pending items
+            // Get detailed todo summary with pending items
+      console.log('=== TODOS DEBUG ===')
+      console.log('Raw todos data:', todos)
+      console.log('Todos length:', todos.length)
+      
+      const now = new Date() // Define now for todos processing
       const pendingTodos = todos.filter(todo => !todo.completed)
-      const highPriorityTodos = pendingTodos.filter(todo => todo.priority === 'high')
-      const mediumPriorityTodos = pendingTodos.filter(todo => todo.priority === 'medium')
-      const lowPriorityTodos = pendingTodos.filter(todo => todo.priority === 'low')
+      const highPriorityTodos = pendingTodos.filter(todo => todo.priority === 2 || todo.priority === 1) // urgent or high
+      const mediumPriorityTodos = pendingTodos.filter(todo => todo.priority === 0) // normal
+      const lowPriorityTodos = [] // No low priority in this schema
+      
+      console.log('Pending todos:', pendingTodos)
+      console.log('High priority todos:', highPriorityTodos)
       
       const todosSummary = {
         total: todos.length,
@@ -211,11 +235,16 @@ export default function AIChat() {
         completionRate: todos.length > 0 ? Math.round((todos.filter(todo => todo.completed).length / todos.length) * 100) : 0,
         pendingTodos: pendingTodos.slice(0, 10).map(todo => ({
           title: todo.title,
-          priority: todo.priority,
+          priority: todo.priority === 2 ? 'urgent' : todo.priority === 1 ? 'high' : 'normal',
           dueDate: todo.due_date ? new Date(todo.due_date).toLocaleDateString() : null,
           overdue: todo.due_date ? new Date(todo.due_date) < now : false
         }))
       }
+      
+      console.log('Todos summary:', todosSummary)
+      console.log('==================')
+
+
 
 
 
@@ -289,32 +318,42 @@ export default function AIChat() {
   }
 
   return (
+    <>
     <div className="h-screen theme-bg theme-text font-['Poppins',sans-serif] flex flex-col">
       {/* Header - Fixed */}
-      <div 
-        className="flex items-center justify-between p-4 border-b theme-border theme-bg flex-shrink-0"
-        style={{
-          paddingTop: 'calc(0.5rem + var(--safe-area-inset-top))',
-          paddingLeft: 'calc(1rem + var(--safe-area-inset-left))',
-          paddingRight: 'calc(1rem + var(--safe-area-inset-right))',
-        }}
-      >
+              <div 
+          className="flex items-center justify-between p-4 border-b theme-border theme-bg flex-shrink-0 ai-chat-header"
+          style={{
+            paddingTop: 'calc(0.5rem + var(--safe-area-inset-top))',
+            paddingLeft: 'calc(1rem + var(--safe-area-inset-left))',
+            paddingRight: 'calc(1rem + var(--safe-area-inset-right))',
+          }}
+        >
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 theme-text-secondary hover:theme-text transition-colors"
+          className="flex items-center justify-center w-10 h-10 rounded-full theme-bg-secondary hover:theme-bg transition-colors"
+          title="Go back"
         >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Back</span>
+          <ArrowLeft className="w-5 h-5 theme-text-secondary" />
         </button>
-        <h1 className="text-lg font-semibold theme-text-lg">AI Assistant</h1>
+        
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
+            <Bot className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold theme-text-lg">Dash</h1>
+            <p className="text-xs theme-text-secondary">Your AI Life Coach</p>
+          </div>
+        </div>
+        
         <button
           onClick={clearChat}
           disabled={messages.length === 0}
-          className="flex items-center gap-2 theme-text-secondary hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center justify-center w-10 h-10 rounded-full theme-bg-secondary hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ai-chat-clear"
           title="Clear chat"
         >
-          <Trash2 className="w-5 h-5" />
-          <span className="hidden sm:inline">Clear</span>
+          <Trash2 className="w-4 h-4 theme-text-secondary" />
         </button>
       </div>
 
@@ -325,7 +364,7 @@ export default function AIChat() {
             <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center mx-auto mb-4">
               <Bot className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-lg font-semibold theme-text-lg mb-2">Hello! I'm your AI assistant</h3>
+            <h3 className="text-lg font-semibold theme-text-lg mb-2">Hello! I'm Dash, your AI life coach</h3>
             <p className="text-muted">I can help you analyze your data, provide insights, and guide you on your journey. Try asking me about your habits, stats, or productivity!</p>
           </div>
         )}
@@ -343,10 +382,10 @@ export default function AIChat() {
             
             <div className={`max-w-[80%] ${message.role === 'user' ? 'order-first' : ''}`}>
               <div
-                className={`p-3 rounded-lg ${
+                className={`p-4 rounded-2xl ${
                   message.role === 'user'
-                    ? 'accent-bg accent-text'
-                    : 'theme-bg-secondary theme-text'
+                    ? 'accent-bg accent-text shadow-sm'
+                    : 'theme-bg-secondary theme-text shadow-sm'
                 }`}
               >
                 {message.role === 'user' ? (
@@ -402,10 +441,10 @@ export default function AIChat() {
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
               <Bot className="w-4 h-4 text-white" />
             </div>
-            <div className="theme-bg-secondary p-3 rounded-lg">
+            <div className="theme-bg-secondary p-4 rounded-2xl shadow-sm">
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Thinking...</span>
+                <span className="text-sm">Dash is thinking...</span>
               </div>
             </div>
           </div>
@@ -424,14 +463,14 @@ export default function AIChat() {
           }}
         >
           {/* Quick Messages */}
-          <div className="px-4 pt-4 pb-2">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          <div className="px-4 pt-4 pb-3">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide ai-chat-quick-messages">
               {QUICK_MESSAGES.map((message, index) => (
                 <button
                   key={index}
                   onClick={() => handleQuickMessage(message)}
                   disabled={isLoading}
-                  className="flex-shrink-0 px-4 py-2 text-sm theme-bg-secondary theme-text-secondary rounded-full hover:theme-bg transition-colors disabled:opacity-50 border theme-border"
+                  className="flex-shrink-0 px-4 py-2 text-sm theme-bg-secondary theme-text-secondary rounded-full hover:theme-bg transition-colors disabled:opacity-50 border theme-border shadow-sm"
                 >
                   {message}
                 </button>
@@ -440,28 +479,31 @@ export default function AIChat() {
           </div>
 
           {/* Input */}
-          <div className="p-4">
-            <form onSubmit={handleSubmit} className="flex gap-2">
+          <div className="px-4 pb-4">
+            <form onSubmit={handleSubmit} className="flex gap-3">
               <input
                 ref={inputRef}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ask me anything about your data..."
+                placeholder="Ask Dash anything about your data..."
                 disabled={isLoading}
-                className="flex-1 px-4 py-2 border theme-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent theme-bg theme-text disabled:opacity-50"
+                className="flex-1 px-4 py-3 border theme-border rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent theme-bg theme-text disabled:opacity-50 shadow-sm ai-chat-input"
               />
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isLoading}
-                className="px-4 py-2 accent-bg accent-text rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-3 accent-bg accent-text rounded-2xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm ai-chat-send"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-5 h-5" />
               </button>
             </form>
           </div>
         </div>
       </div>
-  
+
+      {/* AI Chat Guide */}
+      {showAIChatGuide && <AIChatGuide />}
+    </>
   )
 }

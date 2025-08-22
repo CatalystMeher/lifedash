@@ -22,6 +22,8 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { TourProvider } from './contexts/TourContext'
 import { initializeCapacitor } from './lib/capacitor'
 import useFirstTimeUser from './hooks/useFirstTimeUser'
+import { initIAP } from './lib/iap';
+
 
 export default function App() {
   const { isFirstTimeUser } = useFirstTimeUser();
@@ -29,6 +31,10 @@ export default function App() {
   useEffect(() => {
     // Initialize Capacitor when the app starts
     initializeCapacitor();
+  }, []);
+
+  useEffect(() => {
+    initIAP(); // run once
   }, []);
 
   return (

@@ -116,7 +116,12 @@
   .tour-todos-nav,
   .tour-focus-nav,
   .tour-analytics-nav,
-  .tour-settings-nav {
+  .tour-settings-nav,
+  .ai-chat-header,
+  .ai-chat-clear,
+  .ai-chat-quick-messages,
+  .ai-chat-input,
+  .ai-chat-send {
     position: relative;
     z-index: 1000;
   }
@@ -652,5 +657,31 @@
   .calendar-event.compact:hover {
     transform: scale(1.02);
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Shimmer animation for loading states */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Theme-aware shimmer colors */
+  .theme-shimmer {
+    background: linear-gradient(90deg, 
+      var(--bg-secondary) 0%, 
+      rgba(255, 255, 255, 0.1) 50%, 
+      var(--bg-secondary) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s ease-in-out infinite;
+    opacity: 0.4;
+  }
+
+  .theme-card {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
   }
 }

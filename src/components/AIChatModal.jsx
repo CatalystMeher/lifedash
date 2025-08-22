@@ -67,7 +67,7 @@ export default function AIChatModal({ open, onClose }) {
         .from('todos')
         .select('*')
         .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
+        .order('inserted_at', { ascending: false })
         .limit(20)
       if (error) throw error
       return data || []
@@ -108,9 +108,9 @@ export default function AIChatModal({ open, onClose }) {
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
         const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
         
-        const recentWeek = statEntries.filter(entry => new Date(entry.inserted_at) >= weekAgo)
+        const recentWeek = statEntries.filter(entry => new Date(entry.day) >= weekAgo)
         const previousWeek = statEntries.filter(entry => {
-          const entryDate = new Date(entry.inserted_at)
+          const entryDate = new Date(entry.day)
           return entryDate >= twoWeeksAgo && entryDate < weekAgo
         })
         
@@ -127,7 +127,7 @@ export default function AIChatModal({ open, onClose }) {
           averageValue: avgValue,
           recentWeekTotal: recentWeekTotal.toFixed(2),
           weekChange: `${weekChange}%`,
-          lastEntry: statEntries.length > 0 ? new Date(statEntries[0].inserted_at).toLocaleDateString() : 'Never'
+          lastEntry: statEntries.length > 0 ? new Date(statEntries[0].day).toLocaleDateString() : 'Never'
         }
       })
 
@@ -167,10 +167,11 @@ export default function AIChatModal({ open, onClose }) {
       })
 
       // Get detailed todo summary with pending items
+      const now = new Date() // Define now for todos processing
       const pendingTodos = todos.filter(todo => !todo.completed)
-      const highPriorityTodos = pendingTodos.filter(todo => todo.priority === 'high')
-      const mediumPriorityTodos = pendingTodos.filter(todo => todo.priority === 'medium')
-      const lowPriorityTodos = pendingTodos.filter(todo => todo.priority === 'low')
+      const highPriorityTodos = pendingTodos.filter(todo => todo.priority === 2 || todo.priority === 1) // urgent or high
+      const mediumPriorityTodos = pendingTodos.filter(todo => todo.priority === 0) // normal
+      const lowPriorityTodos = [] // No low priority in this schema
       
       const todosSummary = {
         total: todos.length,
@@ -182,7 +183,7 @@ export default function AIChatModal({ open, onClose }) {
         completionRate: todos.length > 0 ? Math.round((todos.filter(todo => todo.completed).length / todos.length) * 100) : 0,
         pendingTodos: pendingTodos.slice(0, 10).map(todo => ({
           title: todo.title,
-          priority: todo.priority,
+          priority: todo.priority === 2 ? 'urgent' : todo.priority === 1 ? 'high' : 'normal',
           dueDate: todo.due_date ? new Date(todo.due_date).toLocaleDateString() : null,
           overdue: todo.due_date ? new Date(todo.due_date) < now : false
         }))
@@ -195,6 +196,8 @@ export default function AIChatModal({ open, onClose }) {
         todos: todosSummary,
         userPreferences: preferences
       }
+
+
 
       // Call Supabase Edge Function instead of OpenAI directly
       const { data: aiResponse, error } = await supabase.functions.invoke('ai-chat', {
@@ -264,15 +267,15 @@ export default function AIChatModal({ open, onClose }) {
                 <Bot className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold theme-text-lg">AI Assistant</h2>
-                <p className="text-sm text-muted">Your personal life coach</p>
+                <h2 className="text-lg font-semibold theme-text-lg">Dash</h2>
+                <p className="text-sm text-muted">Your AI Life Coach</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="flex items-center justify-center w-10 h-10 rounded-full theme-bg-secondary hover:theme-bg transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 theme-text-secondary" />
             </button>
           </div>
 
@@ -300,7 +303,7 @@ export default function AIChatModal({ open, onClose }) {
                 <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center mx-auto mb-4">
                   <Bot className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-lg font-semibold theme-text-lg mb-2">Hello! I'm your AI assistant</h3>
+                <h3 className="text-lg font-semibold theme-text-lg mb-2">Hello! I'm Dash, your AI life coach</h3>
                 <p className="text-muted">I can help you analyze your data, provide insights, and guide you on your journey. Try asking me about your habits, stats, or productivity!</p>
               </div>
             )}
@@ -318,10 +321,10 @@ export default function AIChatModal({ open, onClose }) {
                 
                 <div className={`max-w-[80%] ${message.role === 'user' ? 'order-first' : ''}`}>
                   <div
-                    className={`p-3 rounded-lg ${
+                    className={`p-4 rounded-2xl ${
                       message.role === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 dark:bg-gray-800 theme-text'
+                        ? 'bg-blue-500 text-white shadow-sm'
+                        : 'bg-gray-100 dark:bg-gray-800 theme-text shadow-sm'
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{message.content}</p>
@@ -344,10 +347,10 @@ export default function AIChatModal({ open, onClose }) {
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl shadow-sm">
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">Thinking...</span>
+                    <span className="text-sm">Dash is thinking...</span>
                   </div>
                 </div>
               </div>
@@ -364,16 +367,16 @@ export default function AIChatModal({ open, onClose }) {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ask me anything about your data..."
+                placeholder="Ask Dash anything about your data..."
                 disabled={isLoading}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent theme-bg theme-text disabled:opacity-50"
+                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent theme-bg theme-text disabled:opacity-50 shadow-sm"
               />
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isLoading}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-3 bg-blue-500 text-white rounded-2xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-5 h-5" />
               </button>
             </form>
           </div>

@@ -5,7 +5,8 @@ import toast from 'react-hot-toast'
 import { useTheme } from '../contexts/ThemeContext'
 import { useUserPreferences } from '../hooks/useUserPreferences'
 import { useTour } from '../contexts/TourContext'
-import { Palette, Sun, Moon, Droplets, Github, Zap, Code, Eye, DollarSign, IndianRupee, Shield, Play } from 'lucide-react'
+import { Palette, Sun, Moon, Droplets, Github, Zap, Code, Eye, DollarSign, IndianRupee, Shield, Play, Bot, Crown } from 'lucide-react'
+import Paywall from '../components/Paywall'
 
 export default function Settings() {
   const { user } = useUser()
@@ -231,16 +232,36 @@ export default function Settings() {
         </div>
       </div>
       
+      {/* Paywall */}
+      <div className="p-6 card">
+        <div className="flex items-center gap-2 mb-4">
+          <Crown className="w-5 h-5 theme-text-secondary" />
+          <h3 className="theme-text-lg">Pro Subscription</h3>
+        </div>
+        <Paywall />
+      </div>
+      
       <div className="p-6 card">
         <h3 className="theme-text-lg mb-4">Account</h3>
         <div className="space-y-3">
-          <button
-            onClick={startTourManually}
-            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-all duration-200 active:scale-95 shadow-sm"
-          >
-            <Play className="w-4 h-4" />
-            Start App Tour
-          </button>
+                  <button
+          onClick={startTourManually}
+          className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-all duration-200 active:scale-95 shadow-sm"
+        >
+          <Play className="w-4 h-4" />
+          Start App Tour
+        </button>
+        
+        <button
+          onClick={() => {
+            localStorage.removeItem('lifedash-ai-chat-guide-completed');
+            toast.success('AI Chat guide reset! Navigate to AI Chat to see it.');
+          }}
+          className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-xl transition-all duration-200 active:scale-95 shadow-sm"
+        >
+          <Bot className="w-4 h-4" />
+          Reset AI Chat Guide
+        </button>
           
           <button
             onClick={() => supabase.auth.signOut()}

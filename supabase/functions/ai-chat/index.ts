@@ -76,6 +76,21 @@ serve(async (req) => {
 
     // Get the request body
     const { message, contextData, conversationHistory } = await req.json()
+    
+    // Debug logging
+    console.log('=== AI CHAT DEBUG ===')
+    console.log('User ID:', user.id)
+    console.log('Message:', message)
+    console.log('Context Data Keys:', Object.keys(contextData || {}))
+    console.log('Stats Count:', contextData?.stats?.length || 0)
+    console.log('Habits Count:', contextData?.habits?.length || 0)
+    console.log('Todos Data:', contextData?.todos)
+    console.log('Todos Total:', contextData?.todos?.total || 0)
+    console.log('Todos Pending:', contextData?.todos?.pending || 0)
+    console.log('Todos Pending List:', contextData?.todos?.pendingTodos)
+    console.log('User Preferences:', contextData?.userPreferences)
+    console.log('Conversation History Length:', conversationHistory?.length || 0)
+    console.log('=====================')
 
     // Validate required fields
     if (!message || typeof message !== 'string') {
@@ -122,6 +137,11 @@ serve(async (req) => {
       `• ${stat.name} (${stat.type}): ${stat.totalValue} ${stat.unit} total, ${stat.totalEntries} entries, avg: ${stat.averageValue} ${stat.unit}, this week: ${stat.recentWeekTotal} ${stat.unit} (${stat.weekChange} change), last entry: ${stat.lastEntry}`
     ).join('\n') : 'No stats tracked yet'
     
+    // Add explicit data summary for AI
+    const statsSummary = stats.length > 0 ? 
+      `\nDATA SUMMARY: User has ${stats.length} active stats with real data. Key stats include: ${stats.slice(0, 3).map(s => `${s.name} (${s.totalValue} ${s.unit})`).join(', ')}` : 
+      '\nDATA SUMMARY: No stats data available'
+    
     const habitsDetails = habits.length > 0 ? habits.map(habit => 
       `• ${habit.name}: ${habit.totalCheckins} total check-ins, ${habit.currentStreak} day streak, ${habit.schedule} schedule, weekly rate: ${habit.weeklyRate}, monthly rate: ${habit.monthlyRate}, last check-in: ${habit.lastCheckin}`
     ).join('\n') : 'No habits tracked yet'
@@ -140,7 +160,7 @@ serve(async (req) => {
 USER'S DATA SUMMARY:
 
 STATS (${stats.length} total):
-${statsDetails}
+${statsDetails}${statsSummary}
 
 HABITS (${habits.length} total):
 ${habitsDetails}
@@ -152,6 +172,8 @@ USER PREFERENCES:
 - Amount formatting: ${userPrefs.amount_format || 'US'}
 - Theme: ${userPrefs.theme || 'system'}
 
+IMPORTANT: The data above is REAL and CURRENT. If you see stats with values, habits with check-ins, or todos with items, that means the user HAS data. Do NOT say "no recent data" or "no data available" if you can see actual values in the summary above.
+
 Your role is to:
 1. Help users understand their data and progress patterns
 2. Provide actionable insights based on their stats, habits, and todos
@@ -160,13 +182,28 @@ Your role is to:
 5. Be encouraging and supportive while being realistic
 
 Guidelines:
-- Reference specific stats and habits by name when relevant
+- ALWAYS reference the specific data you see in the summary above
+- If stats show values (like "Stocks: 346342.00 Rupees"), acknowledge that data exists
+- If habits show check-ins and streaks, mention those specific numbers
+- If todos show completion rates, reference those percentages
 - Use the data to provide personalized insights and recommendations
 - Focus on trends, patterns, and actionable improvements
 - Be concise but thorough (aim for 100-200 words unless detailed analysis is requested)
 - Use the user's preferred amount formatting
 - Prioritize high-priority todos and overdue items when relevant
-- Suggest specific, achievable improvements based on their current data`
+- Suggest specific, achievable improvements based on their current data
+
+EXAMPLE: If someone asks "How am I doing with my habits?" and you see "Excercise: 0 total check-ins, 0 day streak", say "I can see you have 3 habits set up (Excercise, Cardio, Read) but haven't started tracking them yet. Let's get you started with your first check-in!"`
+
+    // Debug: Log the system message length and content
+    console.log('=== SYSTEM MESSAGE DEBUG ===')
+    console.log('System message length:', systemMessage.length)
+    console.log('Stats details length:', statsDetails.length)
+    console.log('Habits details length:', habitsDetails.length)
+    console.log('Todos details length:', todosDetails.length)
+    console.log('Pending todos count:', todos.pendingTodos?.length || 0)
+    console.log('Full system message:', systemMessage)
+    console.log('============================')
 
     // Prepare messages array with conversation history
     const messages = [
